@@ -1,9 +1,9 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
 pub struct FirewallConfig {
     pub port: u16,
-    pub storage_path: PathBuf,
+    pub storage_dir: PathBuf,
 }
 
 impl FirewallConfig {
@@ -13,11 +13,39 @@ impl FirewallConfig {
             .and_then(|p| p.parse().ok())
             .unwrap_or(8084);
 
-        let storage_path = PathBuf::from("/etc/astral/firewall.json");
+        let storage_dir = PathBuf::from("/etc/astral");
 
         Self {
             port,
-            storage_path,
+            storage_dir,
         }
+    }
+
+    pub fn firewall_path(&self) -> PathBuf {
+        self.storage_dir.join("firewall.json")
+    }
+
+    pub fn nat_path(&self) -> PathBuf {
+        self.storage_dir.join("nat.json")
+    }
+
+    pub fn gateway_path(&self) -> PathBuf {
+        self.storage_dir.join("gateway.json")
+    }
+
+    pub fn zero_trust_path(&self) -> PathBuf {
+        self.storage_dir.join("zero_trust.json")
+    }
+
+    pub fn vpn_path(&self) -> PathBuf {
+        self.storage_dir.join("vpn.json")
+    }
+
+    pub fn antivirus_path(&self) -> PathBuf {
+        self.storage_dir.join("antivirus.json")
+    }
+
+    pub fn compliance_path(&self) -> PathBuf {
+        self.storage_dir.join("compliance.json")
     }
 }

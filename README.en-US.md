@@ -4,74 +4,30 @@
 ![Rust](https://img.shields.io/badge/Rust-1.80%2B%20%2F%20OOP-orange.svg)
 ![Axum](https://img.shields.io/badge/Axum-0.8-blue.svg)
 ![Tokio](https://img.shields.io/badge/Runtime-Tokio%20Async-brightgreen.svg)
-![Netfilter](https://img.shields.io/badge/Firewall-Netfilter%20%2F%20eBPF-brightgreen.svg)
-![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61dafb.svg)
+![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite%20%2B%20PrimeReact-61dafb.svg)
+![ISO 27001](https://img.shields.io/badge/Compliance-ISO%2FIEC%2027001-emerald.svg)
 
-**Next-Generation Firewall (NGFW), Stateful Packet Inspection (SPI) and Threat Mitigation in Rust** — Enterprise security module of the Astral ecosystem. Built with Object-Oriented Architecture in Rust, Tokio runtime, and Axum web server, providing network perimeter security, packet filtering, NAT, zone isolation, and active defense.
+**Stateful Firewall, NAT, Edge Gateway, Zero Trust & Antivirus in Rust & React** — Enterprise high-density perimeter security system strictly aligned with **ISO/IEC 27001** controls. Built in pure **Rust** (OOP architecture with Tokio & Axum) and a **React 18** SPA interface using PrimeReact in a high-density NOC/SOC dark theme.
 
-This project is licensed under **GNU AGPL v3**. See [`LICENSE.md`](LICENSE.md).
-
----
-
-## 🎯 Key Features
-
-- **Object-Oriented Architecture in Rust**:
-  - Clean layered structure: Domain Models (`domain/`), Service Traits and Implementations (`service/`), and REST Controllers (`controller/`).
-  - Polymorphic services via `Arc<dyn FirewallService>` and dependency inversion.
-- **Stateful Rule Management**:
-  - Auditable manipulation of Linux kernel `filter`, `nat`, and `mangle` tables via Netfilter/nftables/eBPF.
-  - Multi-zone network definitions (WAN, LAN, DMZ, Isolated) and interface binding.
-  - Reusable CIDR host groups and port groups for clean policy composition.
-- **NAT, Gateway and Port Forwarding**:
-  - Port Forwarding (DNAT) for publishing internal services.
-  - Automated Masquerade (SNAT) for secure Internet egress.
-- **Active Defense and Threat Mitigation**:
-  - Real-time Rate Limiting and Auto-Ban policies against port scanners and DoS attempts.
-  - **Panic Mode**: Immediate zero-trust barrier blocking non-essential ingress traffic during incidents.
-  - Rule snapshot history with instant rollback capabilities.
-- **Modern Management UI**:
-  - React 18, TypeScript, and Vite single-page dashboard with native 4-language i18n support.
+Licensed under **GNU AGPL v3**. See [`LICENSE.md`](LICENSE.md).
 
 ---
 
-## 🛠️ Technology Stack
+## 🛡️ The 7 Pillars of the ISO/IEC 27001 Architecture
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Core Language** | Rust 1.80+ (Edition 2021/2024) | Memory safety, zero-cost abstractions, fearless concurrency |
-| **Architecture** | Object-Oriented (OOP) | Domain traits, encapsulation, dynamic dispatch, clean interfaces |
-| **Web Server** | Axum 0.8 + Tower | High-throughput asynchronous HTTP REST API |
-| **Async Runtime** | Tokio 1.x (Full) | Scalable non-blocking asynchronous I/O execution |
-| **Packet Filtering** | Linux Netfilter / nftables / eBPF | Kernel packet evaluation, state tracking, and IP tables manipulation |
-| **Frontend UI** | React 18, TypeScript, Vite | Modern responsive administration console |
+1. **Stateful Firewall Engine (SPI & Traffic Control):** Connection tracking (conntrack), default deny policy, zone segregation (WAN, LAN, DMZ, Guest, VPN/ZTNA), granular filtering, anti-spoofing (RFC 1918 WAN drop), IANA bogon filtering, DoS rate limiting, and GeoIP blocking.
+2. **NAT Engine:** Port forwarding (DNAT), outbound masquerading (SNAT), 1:1 NAT (Binat), NPTv6 prefix translation, NAT loopback reflection, and ALG helpers (SIP, FTP, PPTP, TFTP).
+3. **Gateway, Multi-WAN & Web Filter:** Automatic failover, weighted load balancing with sticky connections, policy-based routing (PBR), FQ_CoDel/Cake QoS bufferbloat mitigation, egress filtering, and DNS Sinkhole (RPZ C2 & malware blocking).
+4. **Cloudflare Zero Trust (ZTNA):** Native cloudflared connector (Argo Tunnel with zero inbound ports), private WARP routing, edge JWT assertion validation (`Cf-Access-Jwt-Assertion`), and DoH/DoT resolution.
+5. **OpenVPN & PKI Manager:** Built-in Local CA and cert manager, instant CRL revocation, kernel DCO acceleration, AES-256-GCM / ChaCha20-Poly1305, MFA TOTP enforcement, client-specific overrides (CCD), and 1-click unified `.ovpn` profile export.
+6. **Gateway Antivirus (ClamAV & ICAP):** clamd daemon with ICAP streaming inspection, freshclam updater with extended community feeds, encrypted quarantine vault, decompression bomb defense limits, and intelligent streaming bypass.
+7. **ISO/IEC 27001 Governance & Audit:** Change management approval workflow with Before/After Diff viewer (A.8.32), version history with 1-click rollback, live tail console with TLS RFC 5424 Syslog SIEM export (A.8.15), authenticated NTP synchronization check (A.8.17), semantic compliance risk badges (A.8.20), and encrypted backup (A.8.13).
 
 ---
 
-## 💖 Support the Project
+## 🚀 1-Command Clean Build & Deploy
 
-Astral Internet Security is open-source software maintained by an independent engineer:
-
-### International Transfer (Wise)
-
-| | |
-|---|---|
-| **Beneficiary** | Euripedes Batista de Paiva Junior |
-| **Account Type** | Checking |
-| **Routing number (Wire & ACH)** | `101019628` |
-| **Account number** | `215822927677` |
-| **Bank Name** | Wise US Inc, 108 W 13th St, Wilmington, DE, 19801, United States |
-| **SWIFT / BIC** | `TRWIUS35XXX` |
-
-### Brazil (PIX)
-
-```text
-24adc62c-b073-4587-974d-03fe35f6733f
+```bash
+./deploy.py
 ```
-
----
-
-## 📄 License
-
-This project is licensed under **GNU Affero General Public License v3.0 (AGPLv3)**. See [`LICENSE.md`](LICENSE.md).
-
-(c) 2026 Astral Internet Security — **Created by: Euripedes Batista de Paiva Junior**
+Access the operational dashboard at: `http://<FIREWALL-IP>:8084/app/`

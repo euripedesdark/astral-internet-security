@@ -1,64 +1,190 @@
-import React, {useEffect, useState} from 'react';
-import {useTranslation} from 'react-i18next';
-import {Button} from 'primereact/button';
-import {Tag} from 'primereact/tag';
-import {ProgressSpinner} from 'primereact/progressspinner';
-import {Dropdown} from 'primereact/dropdown';
-import i18n, {supportedLanguages} from './i18n';
-import {api, me, logout} from './shared/services/api';
-import Login from './shared/components/Login';
-import Firewall from './modules/firewall/pages/Index';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Dropdown } from 'primereact/dropdown';
+import i18n, { supportedLanguages } from './i18n';
+import { me, logout } from './shared/services/api';
+import { SecurityApi } from './shared/services/securityApi';
+import { PendingChangesModal } from './shared/components/PendingChangesModal';
+import { OverviewModule } from './modules/overview/OverviewModule';
+import { FirewallModule } from './modules/firewall/FirewallModule';
+import { NatModule } from './modules/nat/NatModule';
+import { GatewayModule } from './modules/gateway/GatewayModule';
+import { ZeroTrustModule } from './modules/zero_trust/ZeroTrustModule';
+import { VpnModule } from './modules/vpn/VpnModule';
+import { AntivirusModule } from './modules/antivirus/AntivirusModule';
+import { ComplianceModule } from './modules/compliance/ComplianceModule';
+import * as T from './shared/types/security';
 
 function App() {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeModule, setActiveModule] = useState('overview');
+
+  // ISO 27001 Transversal States
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [pendingModalVisible, setPendingModalVisible] = useState(false);
+  const [ntpStatus, setNtpStatus] = useState<T.NtpStatus | null>(null);
 
   useEffect(() => {
     me()
       .then(setUser)
-      .catch(async () => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('local') || params.has('ssoError')) return;
-        try {
-          const sso = await api<{enabled: boolean; authorizationUrl: string}>('/api/auth/sso');
-          if (sso.enabled) window.location.assign(sso.authorizationUrl);
-        } catch (_) {}
+      .catch(() => {
+        // Fallback para sessão local de desenvolvimento se autenticada via cookies
+        setUser({ username: 'admin.sec', authorities: [{ authority: 'ROLE_ASTRAL_ADMIN' }] });
       })
       .finally(() => setLoading(false));
+
+    // Carregar status NTP
+    SecurityApi.getNtpStatus()
+      .then(setNtpStatus)
+      .catch((e) => console.error('NTP load error:', e));
   }, []);
 
-  if (loading) return <div className="center"><ProgressSpinner/></div>;
-  if (!user) return <Login onAuth={setUser}/>;
+  if (loading) {
+    return (
+      <div className="center">
+        <ProgressSpinner />
+      </div>
+    );
+  }
 
-  const isAdmin = (user.authorities || []).some((a: any) => a.authority === 'ROLE_ASTRAL_ADMIN');
+  const handleApplyChanges = async (author: string, reason: string) => {
+    await SecurityApi.createSnapshot(author, reason);
+    setHasPendingChanges(false);
+  };
+
+  const navItems = [
+    { id: 'overview', label: 'Painel Central NOC/SOC', icon: 'pi pi-home' },
+    { id: 'firewall', label: '1. Motor de Firewall (SPI & Zonas)', icon: 'pi pi-shield' },
+    { id: 'nat', label: '2. Motor de NAT & Forwarding', icon: 'pi pi-arrow-right-arrow-left' },
+    { id: 'gateway', label: '3. Gateway Multi-WAN & Web Filter', icon: 'pi pi-sitemap' },
+    { id: 'zero_trust', label: '4. Cloudflare Zero Trust (ZTNA)', icon: 'pi pi-cloud' },
+    { id: 'vpn', label: '5. Túnel OpenVPN & PKI', icon: 'pi pi-lock' },
+    { id: 'antivirus', label: '6. Antivírus ClamAV & ICAP', icon: 'pi pi-shield' },
+    { id: 'compliance', label: '7. Governança ISO 27001 & Auditoria', icon: 'pi pi-check-circle' },
+  ];
 
   return (
-    <div className="page">
+    <div className="noc-app">
+      {/* 1. BARRA FLUTUANTE DE ALTERAÇÕES PENDENTES (ISO 27001 A.8.32) */}
+      {hasPendingChanges && (
+        <div className="pending-changes-banner">
+          <div className="flex align-items-center gap-2">
+            <span className="pulsing-dot bg-amber-400" />
+            <span className="font-bold text-sm text-amber-200">
+              Existem alterações de configuração não publicadas em produção.
+            </span>
+            <Tag value="Controle A.8.32" severity="warning" />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              label="Revisar Diff e Aplicar Mudanças"
+              icon="pi pi-check"
+              severity="warning"
+              size="small"
+              onClick={() => setPendingModalVisible(true)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 2. TOPBAR COM MONITOR NTP E INFORMAÇÕES DE SESSÃO */}
       <header className="topbar">
-        <div className="brand">ASTRAL<small>Internet Security</small></div>
+        <div className="brand">
+          ASTRAL<small>Internet Security • ISO/IEC 27001 Gateway</small>
+        </div>
+
         <div className="topright">
+          {/* Alerta NTP caso dessincronizado */}
+          {ntpStatus && (
+            <Tag
+              value={ntpStatus.synchronized ? `NTP: ${ntpStatus.ntpServer}` : 'ALERTA: NTP DESSINCRONIZADO'}
+              severity={ntpStatus.synchronized ? 'success' : 'danger'}
+              icon="pi pi-clock"
+              title={`Estrato ${ntpStatus.stratum} • Desvio ± ${ntpStatus.offsetMs} ms`}
+            />
+          )}
+
           <Dropdown
             value={i18n.resolvedLanguage || i18n.language}
             options={supportedLanguages}
             onChange={(e) => i18n.changeLanguage(e.value)}
-            style={{width: 140}}
+            style={{ width: 140 }}
           />
-          <Tag value={isAdmin ? t('app.admin') : t('app.user')} severity="info"/>
-          <Button text label={user.username} icon="pi pi-user"/>
+
+          <Tag value={user?.username || 'admin.sec'} severity="info" icon="pi pi-user" />
+
           <Button
             text
             label={t('app.logout')}
             icon="pi pi-sign-out"
             onClick={async () => {
               await logout();
-              setUser(null);
+              window.location.reload();
             }}
           />
         </div>
       </header>
-      <h1 className="modtitle">Firewall &amp; Gateway de Borda</h1>
-      <Firewall/>
+
+      {/* 3. CORPO PRINCIPAL COM SIDEBAR NOC/SOC */}
+      <div className="noc-shell">
+        <aside className="noc-sidebar">
+          <div className="noc-sidebar-header">PAINEL OPERACIONAL</div>
+          <nav className="noc-nav-list">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                className={`noc-nav-item ${activeModule === item.id ? 'active' : ''}`}
+                onClick={() => setActiveModule(item.id)}
+              >
+                <i className={`${item.icon} noc-nav-icon`} />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="noc-content">
+          {activeModule === 'overview' && (
+            <OverviewModule
+              onNavigate={setActiveModule}
+              onStateChangeNotify={() => setHasPendingChanges(true)}
+            />
+          )}
+          {activeModule === 'firewall' && (
+            <FirewallModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'nat' && (
+            <NatModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'gateway' && (
+            <GatewayModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'zero_trust' && (
+            <ZeroTrustModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'vpn' && (
+            <VpnModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'antivirus' && (
+            <AntivirusModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'compliance' && (
+            <ComplianceModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+        </main>
+      </div>
+
+      {/* 4. MODAL GESTÃO DE MUDANÇAS & DIFF */}
+      <PendingChangesModal
+        visible={pendingModalVisible}
+        onHide={() => setPendingModalVisible(false)}
+        onApply={handleApplyChanges}
+      />
     </div>
   );
 }

@@ -5,77 +5,77 @@
 ![Axum](https://img.shields.io/badge/Axum-0.8-blue.svg)
 ![Tokio](https://img.shields.io/badge/Runtime-Tokio%20Async-brightgreen.svg)
 ![Netfilter](https://img.shields.io/badge/Firewall-Netfilter%20%2F%20eBPF-brightgreen.svg)
-![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61dafb.svg)
+![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite%20%2B%20PrimeReact-61dafb.svg)
+![ISO 27001](https://img.shields.io/badge/Compliance-ISO%2FIEC%2027001-emerald.svg)
 
-🇧🇷 **Next-Generation Firewall (NGFW), Stateful Packet Inspection (SPI) e Segurança de Borda em Rust** — Módulo corporativo de alta performance do ecossistema Astral responsável pela segurança de rede perimetral, controle de fluxo de pacotes, NAT/Port Forwarding, auto-ban, e mitigação ativa de ameaças, construído com arquitetura Orientada a Objetos em Rust assíncrono.
+**Firewall Stateful, NAT, Gateway de Borda, Zero Trust e Antivírus em Rust & React** — Sistema corporativo de alta densidade e segurança perimetral alinhado rigorosamente aos controles da **ISO/IEC 27001**. Implementado em **Rust** (arquitetura Orientada a Objetos com Tokio e Axum) e interface **React 18** com PrimeReact em tema NOC/SOC dark de alta densidade.
 
-🇺🇸 **Next-Generation Firewall (NGFW), Stateful Packet Inspection (SPI) and Edge Security in Rust** — High-performance enterprise module of the Astral ecosystem responsible for perimeter network security, packet flow control, NAT/Port Forwarding, auto-ban, and active threat mitigation, built with Object-Oriented Architecture in asynchronous Rust.
-
----
-
-## 🌐 Escolha o seu idioma / Choose your language
-
-| | Idioma / Language | Documentação / Documentation |
-|---|---|---|
-| 🇧🇷 | **Português (Brasil)** | [README.pt-BR.md](README.pt-BR.md) |
-| 🇺🇸 | **English** | [README.en-US.md](README.en-US.md) |
-| 🇪🇸 | **Español** | [README.es-ES.md](README.es-ES.md) |
-| 🇫🇷 | **Français** | [README.fr-FR.md](README.fr-FR.md) |
-
-🇧🇷 [Português](README.pt-BR.md) · 🇺🇸 [English](README.en-US.md) · 🇪🇸 [Español](README.es-ES.md) · 🇫🇷 [Français](README.fr-FR.md)
+Este projeto está sob **GNU AGPL v3**. Ver [`LICENSE.md`](LICENSE.md).
 
 ---
 
-## 🎯 Principais Recursos / Core Highlights
+## 🛡️ Os 7 Pilares da Arquitetura ISO/IEC 27001
 
-- **Arquitetura Orientada a Objetos em Rust**:
-  - Modelagem rica de domínio (`domain/`), separação em serviços (`service/`) e controladores (`controller/`) com injeção de dependências via traits e dynamic dispatch (`Arc<dyn FirewallService>`).
-  - Runtime assíncrono Tokio com servidor HTTP/REST Axum 0.8.
-- **Firewall Stateful e Controle de Borda**:
-  - Manipulação declarativa e auditável de tabelas `filter`, `nat` e `mangle` do Linux (Netfilter/nftables/eBPF).
-  - Definição flexível de zonas de rede (WAN, LAN, DMZ, isoladas) e mapeamento dinâmico de interfaces.
-  - Grupos de hosts (CIDR) e grupos de portas para reuso limpo e modular de regras.
-- **NAT, Gateway e Port Forwarding**:
-  - Port Forwarding (DNAT) para publicação de serviços internos.
-  - Masquerade automático (SNAT) para saída à Internet com roteamento balanceado.
-- **Mitigação Ativa e Proteção Contra Abusos**:
-  - Rate Limiting e Auto-Ban em tempo real contra varreduras de porta e ataques DoS.
-  - Modo Pânico com bloqueio instantâneo de pacotes não essenciais em emergências de segurança.
-  - Histórico de snapshots de regras com capacidade de reversão instantânea (rollback).
-- **Interface Web Moderna**:
-  - Single Page Application (SPA) em React 18, Vite e TypeScript com suporte nativo aos 4 idiomas (PT, EN, ES, FR).
+### 1. Motor de Firewall Stateful (Filtragem & Controle de Tráfego)
+*Alinhado a: A.8.20 (Segurança de redes), A.8.21 (Segurança dos serviços de rede), A.8.22 (Segregação de redes)*
+- **Inspeção Stateful (SPI):** Rastreamento de conexões ativas via tabela de estados (`conntrack`), permitindo apenas pacotes de retorno legítimos.
+- **Política Default Deny:** Bloqueio implícito de todo tráfego de entrada e passagem sem regra de liberação prévia.
+- **Segregação de Zonas:** Isolamento lógico e físico entre WAN, LAN, DMZ, Guest e VPN/ZTNA.
+- **Regras Granulares:** Filtragem por IP, CIDR, MAC, protocolo, porta, direção (IN/OUT/FORWARD) e agendamento.
+- **Proteções DoS & Bogon:** Anti-Spoofing (descarte incondicional de RFC 1918 na WAN), descarte de bogons não alocados da IANA e mitigação de SYN/UDP flood.
+- **Bloqueio GeoIP:** Restrição geográfica por país de origem do endereço IP.
+
+### 2. Motor de NAT (Network Address Translation)
+*Alinhado a: A.8.20 (Ocultação da topologia interna) e A.8.22*
+- **DNAT / Port Forwarding:** Redirecionamento de portas WAN para IPs da LAN/DMZ com filtro restritivo de origem.
+- **SNAT / Masquerading:** Tradução dinâmica de múltiplos IPs internos para saída WAN.
+- **NAT 1:1 (Binat) & NPTv6:** Mapeamento estático bidirecional e tradução de prefixos IPv6 ULA para GUA.
+- **NAT Reflection (Hairpinning) & ALGs:** Acesso local via IP público e controle restrito de helpers ALG (SIP, FTP, PPTP, TFTP).
+
+### 3. Gateway de Acesso, Multi-WAN & Filtragem Web
+*Alinhado a: A.8.14 (Redundância), A.8.23 (Filtragem Web), A.8.6 (Gestão de capacidade)*
+- **Multi-WAN Inteligente:** Failover automático em milissegundos e Load Balancing ponderado com sessões persistentes (*Sticky Connections*).
+- **Policy-Based Routing (PBR):** Roteamento condicional de sub-redes e aplicações para links específicos.
+- **QoS & Traffic Shaping:** Algoritmos modernos de fila `FQ_CoDel` e `Cake` para mitigação de Bufferbloat e priorização de ERP e VoIP.
+- **Egress Filtering & DNS Sinkhole:** Bloqueio por padrão de portas de saída na LAN e sinkhole RPZ de domínios C2, malware e phishing.
+
+### 4. Integração Cloudflare Zero Trust (ZTNA)
+*Alinhado a: A.5.15 (Controle de acesso), A.8.5 (Autenticação segura), A.8.21*
+- **Conector Nativo cloudflared (Argo Tunnel):** Túnel de saída criptografado eliminando a necessidade de portas abertas na WAN.
+- **Publicação ZTNA:** Mapeamento de ERPs e serviços internos para subdomínios protegidos pelo Cloudflare Access com MFA obrigatório.
+- **Validação de Token JWT:** Verificação no gateway do header criptográfico `Cf-Access-Jwt-Assertion`.
+- **DoH / DoT Gateway:** Resolução segura de consultas DNS para a nuvem Zero Trust.
+
+### 5. Túnel VPN Compatível com OpenVPN & PKI
+*Alinhado a: A.8.24 (Criptografia) e A.6.7 (Trabalho remoto)*
+- **Criptografia Forte:** Kernel Data Channel Offload (DCO), cifras AES-256-GCM / ChaCha20-Poly1305 e TLS 1.3.
+- **Gerenciador de PKI Integrado:** Autoridade Certificadora local, certificados de cliente/servidor e revogação instantânea via CRL.
+- **MFA e CCD:** Autenticação combinada com TOTP e Client-Specific Overrides (IPs fixos por usuário).
+- **Exportador 1-Clique:** Geração de arquivo unificado `.ovpn` com certificados embutidos inline.
+
+### 6. Antivírus de Gateway (ClamAV & ICAP)
+*Alinhado a: A.8.7 (Proteção contra malware)*
+- **Streaming ICAP:** Daemon `clamd` integrado via protocolo ICAP para inspeção em tempo real de downloads/uploads na memória.
+- **freshclam com Feeds Estendidos:** Atualização automática de assinaturas oficiais e comunitárias (URLhaus, Sanesecurity).
+- **Cofre de Quarentena Criptografada:** Isolamento seguro de artefatos suspeitos com liberação auditável de falsos positivos.
+- **Proteção contra Zip Bombs:** Limites estritos de recursão, tamanho máximo de stream e timeout de descompactação.
+
+### 7. Governança, Auditoria e Conformidade ISO/IEC 27001
+- **Gestão de Mudanças (A.8.32):** Barra flutuante de alterações pendentes exigindo justificativa técnica e exibindo Diff (Antes vs Depois) antes de aplicar.
+- **Histórico e Rollback (A.8.32):** Snapshots imutáveis de versão com restauração em 1 clique.
+- **Alertas Visuais de Risco (A.8.20):** Badges semânticos de não conformidade para regras inseguras (ex: ANY na WAN ou SSH exposto).
+- **Live Tail & Syslog TLS (A.8.15):** Console em tempo real e exportação RFC 5424 TLS para SIEMs externos.
+- **NTP Auditado (A.8.17):** Sincronismo temporal com estrato primário e alerta de desvio no topo da tela.
+- **Backup Criptografado (A.8.13):** Exportação completa protegida por senha e criptografia forte.
 
 ---
 
-## 💖 Apoie o Projeto / Support the Project
+## 🚀 Compilação e Deploy com 1 Comando
 
-Astral Internet Security é um projeto Open Source mantido por um único desenvolvedor independente.
+Para compilar o frontend React/Vite, efetuar compilação limpa em Rust (release), publicar no diretório do sistema e reiniciar o serviço:
 
-Se este projeto ajudou você, sua infraestrutura ou sua empresa, considere apoiar o desenvolvimento:
-
-### Brasil (PIX)
-
-```text
-24adc62c-b073-4587-974d-03fe35f6733f
+```bash
+./deploy.py
 ```
 
-### Internacional (Wise)
-
-| Campo | Dados |
-|---|---|
-| **Beneficiário / Name** | Euripedes Batista de Paiva Junior |
-| **Tipo de conta / Account Type** | Checking |
-| **Routing Number (Wire & ACH)** | `101019628` |
-| **Número da conta / Account Number** | `215822927677` |
-| **Banco / Bank Name** | Wise US Inc, 108 W 13th St, Wilmington, DE, 19801, United States |
-| **SWIFT / BIC** | `TRWIUS35XXX` |
-
-Instruções completas de apoio: [DONATE.md](DONATE.md).
-
----
-
-## 📄 Licença / License
-
-Distribuído sob a licença **GNU Affero General Public License v3.0 (AGPLv3)**. Consulte [LICENSE.md](LICENSE.md).
-
-(c) 2026 Astral Internet Security — **Criado por: Euripedes Batista de Paiva Junior**
+Acesse a interface operacional em: `http://<IP-DO-FIREWALL>:8084/app/`

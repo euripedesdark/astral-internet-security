@@ -1,11 +1,13 @@
 use crate::domain::{FirewallError, FirewallRule};
 use std::process::Command;
-use tracing::{error, info};
+use tracing::info;
 
 pub trait PacketFilterBackend: Send + Sync {
     fn apply_rule(&self, rule: &FirewallRule) -> Result<(), FirewallError>;
     fn remove_rule(&self, rule: &FirewallRule) -> Result<(), FirewallError>;
     fn apply_panic(&self, enabled: bool) -> Result<(), FirewallError>;
+    fn apply_bogon_filtering(&self, enabled: bool) -> Result<(), FirewallError>;
+    fn apply_rate_limit(&self, max_conn: u32, syn_rate: u32) -> Result<(), FirewallError>;
 }
 
 pub struct IptablesBackend;
@@ -27,7 +29,7 @@ impl PacketFilterBackend for IptablesBackend {
         let mut cmd = Command::new("iptables");
         cmd.args(["-A", chain]);
 
-        if !rule.protocol.is_empty() && rule.protocol != "ALL" {
+        if !rule.protocol.is_empty() && rule.protocol != "ALL" && rule.protocol != "ANY" {
             cmd.args(["-p", &rule.protocol.to_lowercase()]);
             if !rule.port.is_empty() && rule.port != "ANY" {
                 cmd.args(["--dport", &rule.port]);
@@ -43,6 +45,12 @@ impl PacketFilterBackend for IptablesBackend {
         if let Some(ref dst) = rule.destination_ip {
             if !dst.is_empty() && dst != "0.0.0.0/0" {
                 cmd.args(["-d", dst]);
+            }
+        }
+
+        if let Some(ref mac) = rule.source_mac {
+            if !mac.is_empty() {
+                cmd.args(["-m", "mac", "--mac-source", mac]);
             }
         }
 
@@ -67,7 +75,7 @@ impl PacketFilterBackend for IptablesBackend {
         let mut cmd = Command::new("iptables");
         cmd.args(["-D", chain]);
 
-        if !rule.protocol.is_empty() && rule.protocol != "ALL" {
+        if !rule.protocol.is_empty() && rule.protocol != "ALL" && rule.protocol != "ANY" {
             cmd.args(["-p", &rule.protocol.to_lowercase()]);
             if !rule.port.is_empty() && rule.port != "ANY" {
                 cmd.args(["--dport", &rule.port]);
@@ -82,14 +90,32 @@ impl PacketFilterBackend for IptablesBackend {
 
     fn apply_panic(&self, enabled: bool) -> Result<(), FirewallError> {
         if enabled {
-            info!("Activating PANIC MODE: Dropping all input packets");
+            info!("Activating PANIC MODE: Dropping all packets (Default Deny)");
             let _ = Command::new("iptables").args(["-P", "INPUT", "DROP"]).status();
             let _ = Command::new("iptables").args(["-P", "FORWARD", "DROP"]).status();
         } else {
-            info!("Deactivating PANIC MODE: Restoring default ACCEPT");
+            info!("Deactivating PANIC MODE: Restoring baseline state");
             let _ = Command::new("iptables").args(["-P", "INPUT", "ACCEPT"]).status();
             let _ = Command::new("iptables").args(["-P", "FORWARD", "ACCEPT"]).status();
         }
+        Ok(())
+    }
+
+    fn apply_bogon_filtering(&self, enabled: bool) -> Result<(), FirewallError> {
+        if enabled {
+            info!("Enforcing Anti-Spoofing & RFC 1918 Bogon drops on WAN interfaces");
+            let _ = Command::new("iptables").args(["-I", "INPUT", "-i", "wan0", "-s", "10.0.0.0/8", "-j", "DROP"]).status();
+            let _ = Command::new("iptables").args(["-I", "INPUT", "-i", "wan0", "-s", "172.16.0.0/12", "-j", "DROP"]).status();
+            let _ = Command::new("iptables").args(["-I", "INPUT", "-i", "wan0", "-s", "192.168.0.0/16", "-j", "DROP"]).status();
+        }
+        Ok(())
+    }
+
+    fn apply_rate_limit(&self, max_conn: u32, syn_rate: u32) -> Result<(), FirewallError> {
+        info!("Applying DoS Rate Limiting: Max Conn: {}, SYN Rate: {}/s", max_conn, syn_rate);
+        let _ = Command::new("iptables")
+            .args(["-I", "INPUT", "-p", "tcp", "--syn", "-m", "limit", "--limit", &format!("{}/s", syn_rate), "--limit-burst", "100", "-j", "ACCEPT"])
+            .status();
         Ok(())
     }
 }

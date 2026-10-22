@@ -1,4 +1,6 @@
-use crate::domain::{FirewallRule, NatRule};
+use crate::domain::{
+    AliasObject, AntiSpoofingConfig, FirewallRule, GeoIpPolicy, NetworkZone, RateLimitConfig,
+};
 use crate::service::FirewallEngine;
 use axum::{
     http::StatusCode,
@@ -50,19 +52,70 @@ impl FirewallController {
         }
     }
 
-    pub fn handle_get_nat(&self) -> Json<serde_json::Value> {
-        Json(json!(self.engine.get_nat_rules()))
+    pub fn handle_get_zones(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_zones()))
     }
 
-    pub fn handle_add_nat(&self, rule: NatRule) -> Response {
-        match self.engine.add_nat_rule(rule) {
+    pub fn handle_add_zone(&self, zone: NetworkZone) -> Response {
+        match self.engine.add_zone(zone) {
             Ok(created) => (StatusCode::CREATED, Json(created)).into_response(),
             Err(e) => e.to_json_response().into_response(),
         }
     }
 
-    pub fn handle_delete_nat(&self, id: &str) -> Response {
-        match self.engine.delete_nat_rule(id) {
+    pub fn handle_get_aliases(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_aliases()))
+    }
+
+    pub fn handle_add_alias(&self, alias: AliasObject) -> Response {
+        match self.engine.add_alias(alias) {
+            Ok(created) => (StatusCode::CREATED, Json(created)).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_delete_alias(&self, id: &str) -> Response {
+        match self.engine.delete_alias(id) {
+            Ok(_) => (StatusCode::OK, Json(json!({"deleted": true, "id": id}))).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_get_anti_spoofing(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_anti_spoofing()))
+    }
+
+    pub fn handle_set_anti_spoofing(&self, config: AntiSpoofingConfig) -> Response {
+        match self.engine.set_anti_spoofing(config) {
+            Ok(res) => (StatusCode::OK, Json(res)).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_get_rate_limiting(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_rate_limiting()))
+    }
+
+    pub fn handle_set_rate_limiting(&self, config: RateLimitConfig) -> Response {
+        match self.engine.set_rate_limiting(config) {
+            Ok(res) => (StatusCode::OK, Json(res)).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_get_geoip(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_geoip_policies()))
+    }
+
+    pub fn handle_add_geoip(&self, policy: GeoIpPolicy) -> Response {
+        match self.engine.add_geoip_policy(policy) {
+            Ok(created) => (StatusCode::CREATED, Json(created)).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_delete_geoip(&self, id: &str) -> Response {
+        match self.engine.delete_geoip_policy(id) {
             Ok(_) => (StatusCode::OK, Json(json!({"deleted": true, "id": id}))).into_response(),
             Err(e) => e.to_json_response().into_response(),
         }
