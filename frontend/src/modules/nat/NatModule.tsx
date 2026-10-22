@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [natRules, setNatRules] = useState<T.NatRule[]>([]);
   const [alg, setAlg] = useState<T.AlgConfig>({
     sipEnabled: false,
@@ -79,13 +81,13 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     <div className="noc-module">
       <TabView className="noc-tabs">
         {/* ABA 1: PORT FORWARDING (DNAT) */}
-        <TabPanel header="Port Forwarding (DNAT)" leftIcon="pi pi-arrow-right-arrow-left mr-2">
+        <TabPanel header={t('ais.nat.tabDnat')} leftIcon="pi pi-arrow-right-arrow-left mr-2">
           <div className="flex justify-content-between align-items-center mb-3">
             <span className="text-sm text-gray-300">
               Redirecionamento de portas WAN para servidores internos na LAN ou DMZ com filtro de origem (ISO 27001 A.8.20).
             </span>
             <Button
-              label="Novo Redirecionamento"
+              label={t('ais.nat.newDnat')}
               icon="pi pi-plus"
               size="small"
               severity="success"
@@ -122,15 +124,15 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
                 />
               )}
             />
-            <Column field="interface" header="Interface" style={{ width: '6rem' }} />
-            <Column field="name" header="Nome da Regra" className="font-bold text-cyan-300" />
-            <Column field="protocol" header="Proto" style={{ width: '5rem' }} />
+            <Column field="interface" header={t('ais.nat.colInterface')} style={{ width: '6rem' }} />
+            <Column field="name" header={t('ais.nat.colRuleName')} className="font-bold text-cyan-300" />
+            <Column field="protocol" header={t('ais.nat.colProto')} style={{ width: '5rem' }} />
             <Column
-              header="Porta Externa WAN"
+              header={t('ais.nat.colExtPort')}
               body={(r: T.NatRule) => <code className="text-xs">{r.originalPort}</code>}
             />
             <Column
-              header="IP e Porta Interna"
+              header={t('ais.nat.colIntDest')}
               body={(r: T.NatRule) => (
                 <div className="font-mono text-xs">
                   <span className="text-green-400">{r.destinationIp}</span> :{' '}
@@ -154,13 +156,13 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 2: OUTBOUND NAT (SNAT / MASQUERADE) */}
-        <TabPanel header="Outbound NAT (SNAT)" leftIcon="pi pi-external-link mr-2">
+        <TabPanel header={t('ais.nat.tabSnat')} leftIcon="pi pi-external-link mr-2">
           <div className="flex justify-content-between align-items-center mb-3">
             <span className="text-sm text-gray-300">
               Tradução dinâmica de IPs privados da LAN para o IP público WAN (Masquerading).
             </span>
             <Button
-              label="Nova Regra de Saída"
+              label={t('ais.nat.newSnat')}
               icon="pi pi-plus"
               size="small"
               severity="info"
@@ -182,26 +184,26 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           </div>
 
           <DataTable value={outboundNats} size="small" className="noc-table">
-            <Column field="interface" header="Interface WAN" style={{ width: '8rem' }} />
-            <Column field="name" header="Nome da Regra" className="font-bold text-cyan-300" />
-            <Column field="originalIp" header="Rede de Origem (LAN)" />
-            <Column field="destinationIp" header="Destino" />
+            <Column field="interface" header={t('ais.nat.colWanIface')} style={{ width: '8rem' }} />
+            <Column field="name" header={t('ais.nat.colRuleName')} className="font-bold text-cyan-300" />
+            <Column field="originalIp" header={t('ais.nat.colLanOrigin')} />
+            <Column field="destinationIp" header={t('ais.nat.colDest')} />
             <Column
               field="natType"
-              header="Modo de Tradução"
+              header={t('ais.nat.colTranslationMode')}
               body={() => <Tag value="SNAT Masquerade Dinâmico" severity="success" />}
             />
           </DataTable>
         </TabPanel>
 
         {/* ABA 3: NAT 1:1 (BINAT) & NPTv6 */}
-        <TabPanel header="NAT 1:1 & NPTv6" leftIcon="pi pi-link mr-2">
+        <TabPanel header={t('ais.nat.tabBinat')} leftIcon="pi pi-link mr-2">
           <div className="flex justify-content-between align-items-center mb-3">
             <span className="text-sm text-gray-300">
               Mapeamento estático bidirecional 1:1 e tradução limpa de prefixos IPv6 (ULA para GUA).
             </span>
             <Button
-              label="Novo NAT 1:1 / NPTv6"
+              label={t('ais.nat.newBinat')}
               icon="pi pi-plus"
               size="small"
               severity="warning"
@@ -223,9 +225,9 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           </div>
 
           <DataTable value={binatRules} size="small" className="noc-table" emptyMessage="Nenhum NAT 1:1 ou NPTv6 cadastrado.">
-            <Column field="name" header="Identificador" className="font-bold text-cyan-300" />
-            <Column field="originalIp" header="IP Público Exclusivo" />
-            <Column field="destinationIp" header="IP Privado Interno" />
+            <Column field="name" header={t('ais.nat.colIdentifier')} className="font-bold text-cyan-300" />
+            <Column field="originalIp" header={t('ais.nat.colPublicIp')} />
+            <Column field="destinationIp" header={t('ais.nat.colPrivateIp')} />
             <Column
               field="natType"
               header="Tipo"
@@ -237,10 +239,10 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 4: CONFIGURAÇÕES AVANÇADAS & ALG */}
-        <TabPanel header="Avançado & ALGs" leftIcon="pi pi-cog mr-2">
+        <TabPanel header={t('ais.nat.tabAlg')} leftIcon="pi pi-cog mr-2">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <Card title="NAT Reflection (Loopback / Hairpinning)" className="noc-card mb-3">
+              <Card title={t('ais.nat.reflectionTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Permite que computadores da rede interna acessem serviços hospedados internamente utilizando o IP público ou domínio externo sem que o pacote se perca.
                 </p>
@@ -258,7 +260,7 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <div className="col-12 md:col-6">
-              <Card title="Application Layer Gateways (ALG Helpers)" className="noc-card mb-3">
+              <Card title={t('ais.nat.algTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Controle estrito de helpers do kernel para protocolos com portas negociadas dinamicamente (ISO 27001 A.8.20).
                 </p>
@@ -300,7 +302,7 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <Dialog
         visible={dialogVisible}
         onHide={() => setDialogVisible(false)}
-        header={<span className="font-bold font-orbitron">Cadastrar Regra de Tradução NAT</span>}
+        header={<span className="font-bold font-orbitron">{t('ais.nat.dialogNewNat')}</span>}
         style={{ width: '540px' }}
         className="noc-dialog p-fluid"
         modal
@@ -381,8 +383,8 @@ export const NatModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </div>
 
         <div className="flex justify-content-end gap-2 mt-4">
-          <Button label="Cancelar" text onClick={() => setDialogVisible(false)} />
-          <Button label="Salvar Regra NAT" icon="pi pi-check" severity="success" onClick={handleSaveRule} />
+          <Button label={t('common.cancel')} text onClick={() => setDialogVisible(false)} />
+          <Button label={t('ais.nat.saveNatRule')} icon="pi pi-check" severity="success" onClick={handleSaveRule} />
         </div>
       </Dialog>
     </div>

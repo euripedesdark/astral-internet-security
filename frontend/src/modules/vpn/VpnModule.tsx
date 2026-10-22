@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [vpnConfig, setVpnConfig] = useState<T.OpenVpnConfig>({
     mode: 'RoadWarrior',
     port: 1194,
@@ -61,7 +63,7 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
   };
 
   const handleRevokeCert = async (id: string) => {
-    if (confirm('Revogar este certificado imediatamente? O acesso do usuário será encerrado na mesma hora (CRL ativa).')) {
+    if (confirm(t('ais.vpn.revokeConfirm'))) {
       await SecurityApi.revokeCert(id);
       setCerts(certs.map((c) => (c.id === id ? { ...c, revoked: true } : c)));
       onStateChangeNotify();
@@ -83,13 +85,13 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     <div className="noc-module">
       <TabView className="noc-tabs">
         {/* ABA 1: PKI & CERTIFICADOS */}
-        <TabPanel header="Infraestrutura de Chaves (PKI)" leftIcon="pi pi-key mr-2">
+        <TabPanel header={t('ais.vpn.tabPki')} leftIcon="pi pi-key mr-2">
           <div className="flex justify-content-between align-items-center mb-3">
             <span className="text-sm text-gray-300">
-              Gerenciador de Autoridade Certificadora local com revogação instantânea via CRL (ISO 27001 A.8.24 / A.6.7).
+              {t('ais.vpn.pkiDesc')}
             </span>
             <Button
-              label="Emitir Novo Certificado"
+              label={t('ais.vpn.issueCert')}
               icon="pi pi-plus"
               size="small"
               severity="success"
@@ -98,30 +100,30 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           </div>
 
           <DataTable value={certs} size="small" className="noc-table">
-            <Column field="commonName" header="Nome Comum (CN / Usuário)" className="font-bold text-cyan-300" />
+            <Column field="commonName" header={t('ais.vpn.colCommonName')} className="font-bold text-cyan-300" />
             <Column
               field="certType"
-              header="Tipo"
+              header={t('ais.vpn.colType')}
               body={(c: T.PkiCert) => <Tag value={c.certType} severity={c.certType === 'CA' ? 'danger' : c.certType === 'Server' ? 'info' : 'success'} />}
             />
-            <Column field="serial" header="Serial Hex" body={(c: T.PkiCert) => <code>{c.serial}</code>} />
+            <Column field="serial" header={t('ais.vpn.colSerial')} body={(c: T.PkiCert) => <code>{c.serial}</code>} />
             <Column
               field="revoked"
-              header="Status da Validade"
+              header={t('ais.vpn.colValidityStatus')}
               body={(c: T.PkiCert) => (
                 <Tag
-                  value={c.revoked ? 'REVOGADO (CRL)' : 'VÁLIDO / ATIVO'}
+                  value={c.revoked ? t('ais.vpn.revokedTag') : t('ais.vpn.validTag')}
                   severity={c.revoked ? 'danger' : 'success'}
                   icon={c.revoked ? 'pi pi-ban' : 'pi pi-check'}
                 />
               )}
             />
             <Column
-              header="Exportar .ovpn"
+              header={t('ais.vpn.colExportOvpn')}
               body={(c: T.PkiCert) =>
                 c.certType === 'Client' && !c.revoked ? (
                   <Button
-                    label="Baixar .ovpn"
+                    label={t('ais.vpn.btnDownloadOvpn')}
                     icon="pi pi-download"
                     size="small"
                     outlined
@@ -136,7 +138,7 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
               body={(c: T.PkiCert) =>
                 !c.revoked && c.certType !== 'CA' ? (
                   <Button
-                    label="Revogar"
+                    label={t('ais.vpn.btnRevoke')}
                     icon="pi pi-ban"
                     severity="danger"
                     size="small"
@@ -149,8 +151,8 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 2: SERVIDOR OPENVPN & CRIPTOGRAFIA */}
-        <TabPanel header="Servidor OpenVPN & Criptografia" leftIcon="pi pi-lock mr-2">
-          <Card title="Criptografia de Alto Padrão (Data Channel Offload)" className="noc-card mb-4">
+        <TabPanel header={t('ais.vpn.tabServer')} leftIcon="pi pi-lock mr-2">
+          <Card title={t('ais.vpn.cryptoTitle')} className="noc-card mb-4">
             <div className="grid">
               <div className="col-12 md:col-4">
                 <label className="text-xs font-bold text-gray-400 block mb-1">Cifra de Criptografia Obrigatória</label>
@@ -227,7 +229,7 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <Dialog
         visible={certDialog}
         onHide={() => setCertDialog(false)}
-        header={<span className="font-bold font-orbitron">Emitir Certificado Digital X.509</span>}
+        header={<span className="font-bold font-orbitron">{t('ais.vpn.dialogIssue')}</span>}
         style={{ width: '480px' }}
         className="noc-dialog p-fluid"
         modal
@@ -252,8 +254,8 @@ export const VpnModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           />
         </div>
         <div className="flex justify-content-end gap-2 mt-4">
-          <Button label="Cancelar" text onClick={() => setCertDialog(false)} />
-          <Button label="Emitir Certificado" icon="pi pi-check" severity="success" onClick={handleIssueCert} />
+          <Button label={t('common.cancel')} text onClick={() => setCertDialog(false)} />
+          <Button label={t('ais.vpn.btnConfirmIssue')} icon="pi pi-check" severity="success" onClick={handleIssueCert} />
         </div>
       </Dialog>
     </div>

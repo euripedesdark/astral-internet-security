@@ -1,31 +1,55 @@
-# Astral Internet Security
+# Astral Internet Security — Documentación (Español)
 
-![Licencia](https://img.shields.io/badge/License-AGPLv3-blue.svg)
-![Rust](https://img.shields.io/badge/Rust-1.80%2B%20%2F%20OOP-orange.svg)
-![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite%20%2B%20PrimeReact-61dafb.svg)
-![ISO 27001](https://img.shields.io/badge/Compliance-ISO%2FIEC%2027001-emerald.svg)
+![Licencia](https://img.shields.io/badge/License-Propietaria-red.svg)
+![Rust](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)
+![ISO 27001](https://img.shields.io/badge/Security-ISO%2FIEC%2027001-blue.svg)
+![i18n](https://img.shields.io/badge/i18n-4%20Idiomas-green.svg)
 
-**Firewall Stateful, NAT, Gateway de Borde, Zero Trust y Antivirus en Rust & React** — Sistema de seguridad perimetral de alta densidad alineado estrictamente con los controles de la norma **ISO/IEC 27001**. Desarrollado en **Rust** (arquitectura orientada a objetos con Tokio y Axum) y frontend **React 18** con PrimeReact en tema NOC/SOC oscuro.
-
-Licencia **GNU AGPL v3**. Consulte [`LICENSE.md`](LICENSE.md).
+Gateway de Borde y Seguridad Perimetral de Alto Rendimiento en Rust, diseñado en conformidad con la norma ISO/IEC 27001:2022.
 
 ---
 
-## 🛡️ Los 7 Pilares de la Arquitectura ISO/IEC 27001
+## 7 Módulos de Seguridad
 
-1. **Motor de Firewall Stateful:** Conntrack SPI, política default deny, segregación de zonas (WAN, LAN, DMZ, Guest, VPN), reglas granulares, anti-spoofing RFC 1918, filtrado bogon, mitigación DoS y bloqueo GeoIP.
-2. **Motor de NAT:** Port forwarding (DNAT), mascarada de salida (SNAT), NAT 1:1 (Binat), NPTv6, NAT reflection (hairpinning) y helpers ALG (SIP, FTP, PPTP, TFTP).
-3. **Gateway Multi-WAN y Filtrado Web:** Conmutación por error automática (failover), balanceo de carga con sesiones persistentes, PBR, QoS FQ_CoDel/Cake, filtrado de salida (egress) y sinkhole DNS RPZ.
-4. **Cloudflare Zero Trust (ZTNA):** Conector cloudflared integrado (túnel Argo sin puertos WAN abiertos), publicación ZTNA con MFA, enrutamiento WARP y validación JWT.
-5. **Túnel OpenVPN y PKI:** CA integrada, revocación inmediata por CRL, aceleración DCO en kernel, cifrado AES-256-GCM, MFA TOTP y exportador de perfil unificado `.ovpn`.
-6. **Antivirus de Gateway (ClamAV):** Inspección ICAP en streaming, actualizaciones freshclam, bóveda de cuarentena cifrada y protección contra bombas de descompresión.
-7. **Gobernanza y Auditoría ISO 27001:** Gestión de cambios con visor Diff antes de aplicar (A.8.32), historial y rollback en 1 clic, consola live tail con exportación Syslog TLS RFC 5424 (A.8.15), sincronización NTP (A.8.17) y copias de seguridad cifradas (A.8.13).
+1. **Motor de Firewall Stateful (SPI & Zonas)**:
+   - Inspección profunda con seguimiento de conexiones (Conntrack).
+   - Bloqueo de paquetes falsificados (Anti-Spoofing) y redes Bogon (RFC 1918).
+   - Mitigación DoS adaptativa contra inundaciones SYN, ICMP y UDP.
+   - Filtrado geográfico GeoIP por país y dirección de tráfico.
+2. **Motor de NAT & Reenvío**:
+   - DNAT (Port Forwarding), SNAT Masquerade, NAT 1:1 estático y NPTv6.
+   - Loopback / Hairpinning para resolución interna de IPs públicas.
+   - Soporte para Application Layer Gateways (ALGs).
+3. **Gateway Multi-WAN & Filtro Web**:
+   - Supervisión activa de enlaces WAN con conmutación por error (Failover).
+   - Balanceo de carga y Enrutamiento Basado en Políticas (PBR).
+   - Moldeado de tráfico QoS y DNS Sinkhole contra botnets C2.
+4. **Cloudflare Zero Trust (ZTNA)**:
+   - Túnel Argo `cloudflared` bidireccional sin puertos abiertos de entrada.
+   - Validación criptográfica de tokens JWT y resolución DNS segura (DoH).
+5. **Túnel OpenVPN y Gestor PKI**:
+   - Autoridad Certificadora local con revocación CRL inmediata.
+   - Aceleración en kernel DCO y descarga de perfiles `.ovpn`.
+6. **Antivirus ClamAV & ICAP**:
+   - Escaneo en flujo continuo mediante protocolo ICAP.
+   - Actualización continua de firmas Freshclam y aislamiento en cuarentena.
+7. **Gobernanza ISO 27001 y Auditoría**:
+   - Gestión de Cambios (Control A.8.32) con revisión de Diff y justificación obligatoria.
+   - Snapshots de configuración con rollback inmediato.
+   - Sincronización NTP (Control A.8.17) y exportación Syslog TLS para SIEM.
 
 ---
 
-## 🚀 Despliegue Limpio en 1 Comando
+## Consola NOC/SOC en 4 Idiomas
 
-```bash
-./deploy.py
-```
-Acceda a la interfaz en: `http://<IP-FIREWALL>:8084/app/`
+Interfaz SPA desarrollada en React 18 con soporte completo para:
+- Español (es-ES)
+- Portugués (pt-BR)
+- Inglés (en-US)
+- Francés (fr-FR)
+
+---
+
+## Licencia
+
+Copyright (C) Astral Software. Todos los derechos reservados. Licencia Comercial Propietaria.

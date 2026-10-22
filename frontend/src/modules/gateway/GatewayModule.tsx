@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [wanLinks, setWanLinks] = useState<T.WanLink[]>([]);
   const [multiWan, setMultiWan] = useState<T.MultiWanConfig>({
     mode: 'Failover',
@@ -75,7 +77,7 @@ export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     <div className="noc-module">
       <TabView className="noc-tabs">
         {/* ABA 1: PAINEL MULTI-WAN */}
-        <TabPanel header="Multi-WAN & Failover" leftIcon="pi pi-sitemap mr-2">
+        <TabPanel header={t('ais.gateway.tabMultiwan')} leftIcon="pi pi-sitemap mr-2">
           <div className="grid mb-4">
             {wanLinks.map((link) => (
               <div key={link.id} className="col-12 md:col-6">
@@ -117,7 +119,7 @@ export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             ))}
           </div>
 
-          <Card title="Configuração de Política Multi-WAN (ISO 27001 A.8.14)" className="noc-card">
+          <Card title={t('ais.gateway.multiwanPolicyTitle')} className="noc-card">
             <div className="grid">
               <div className="col-12 md:col-6">
                 <label className="text-xs font-bold text-gray-300 block mb-1">Modo de Operação WAN</label>
@@ -156,10 +158,10 @@ export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 2: PBR & QOS */}
-        <TabPanel header="Roteamento PBR & QoS" leftIcon="pi pi-sliders-h mr-2">
+        <TabPanel header={t('ais.gateway.tabPbr')} leftIcon="pi pi-sliders-h mr-2">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <Card title="QoS & Traffic Shaping (Mitigação de Bufferbloat)" className="noc-card mb-3">
+              <Card title={t('ais.gateway.qosTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Algoritmos modernos de fila FQ_CoDel e Cake para eliminação de latência sob carga pesada e priorização de ERP/VoIP.
                 </p>
@@ -207,14 +209,14 @@ export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <div className="col-12 md:col-6">
-              <Card title="Policy-Based Routing (PBR)" className="noc-card mb-3">
+              <Card title={t('ais.gateway.pbrTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Force o tráfego de sub-redes ou serviços críticos a sair exclusivamente por determinado link ou túnel seguro.
                 </p>
                 <DataTable value={pbrRules} size="small" className="noc-table" emptyMessage="Nenhuma rota baseada em política cadastrada.">
-                  <Column field="name" header="Política" className="font-bold text-cyan-300" />
-                  <Column field="sourceNetwork" header="Rede Origem" />
-                  <Column field="targetGateway" header="Gateway Forçado" />
+                  <Column field="name" header={t('ais.gateway.colPolicy')} className="font-bold text-cyan-300" />
+                  <Column field="sourceNetwork" header={t('ais.gateway.colSourceNetwork')} />
+                  <Column field="targetGateway" header={t('ais.gateway.colTargetGateway')} />
                   <Column
                     style={{ width: '3rem' }}
                     body={(r: T.PbrRule) => (
@@ -238,10 +240,10 @@ export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 3: EGRESS FILTERING & DNS SINKHOLE */}
-        <TabPanel header="Egress Filtering & Sinkhole" leftIcon="pi pi-filter mr-2">
+        <TabPanel header={t('ais.gateway.tabEgress')} leftIcon="pi pi-filter mr-2">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <Card title="Filtragem de Saída (Egress Filtering Restritivo)" className="noc-card mb-3">
+              <Card title={t('ais.gateway.egressTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Bloqueio por padrão de conexões de saída na LAN, liberando exclusivamente portas de navegação seguras para prevenir vazamento e exfiltração de dados (ISO 27001 A.8.23).
                 </p>
@@ -267,7 +269,7 @@ export const GatewayModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <div className="col-12 md:col-6">
-              <Card title="DNS Sinkhole & Proteção contra C2" className="noc-card mb-3">
+              <Card title={t('ais.gateway.sinkholeTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Interceptação de requisições DNS para domínios maliciosos, redes de comando e controle (C2) e phishing (RPZ Response Policy Zones).
                 </p>

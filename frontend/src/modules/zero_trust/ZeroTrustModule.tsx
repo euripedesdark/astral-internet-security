@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [tunnel, setTunnel] = useState<T.CloudflareTunnelConfig>({
     tunnelId: 'astral-argo-tunnel-01',
     tunnelName: 'astral-enterprise-edge',
@@ -77,27 +79,27 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
   return (
     <div className="noc-module">
       {/* CARD CONECTOR CLOUDFLARED */}
-      <Card title="Daemon Conector Nativo Cloudflared (Argo Tunnel)" className="noc-card mb-4">
+      <Card title={t('ais.zerotrust.tunnelCardTitle')} className="noc-card mb-4">
         <div className="grid align-items-center">
           <div className="col-12 md:col-4">
-            <span className="text-xs text-gray-500 block">STATUS DO TÚNEL</span>
+            <span className="text-xs text-gray-500 block">{t('ais.zerotrust.tunnelStatus')}</span>
             <div className="flex align-items-center gap-2 mt-1">
               <span className="pulsing-dot bg-green-500" />
               <span className="font-bold font-orbitron text-green-400 text-lg">{tunnel.status}</span>
             </div>
-            <small className="text-gray-400">Sem portas de entrada abertas no Firewall (Zero Inbound)</small>
+            <small className="text-gray-400">{t('ais.zerotrust.zeroInbound')}</small>
           </div>
           <div className="col-12 md:col-4">
-            <span className="text-xs text-gray-500 block">CONECTORES ATIVOS</span>
+            <span className="text-xs text-gray-500 block">{t('ais.zerotrust.activeConnectors')}</span>
             <span className="font-bold text-xl text-cyan-300">{tunnel.activeConnectors} instâncias redundantes</span>
           </div>
           <div className="col-12 md:col-4 text-right">
             <Button
-              label="Reiniciar Conector cloudflared"
+              label={t('ais.zerotrust.restartConnector')}
               icon="pi pi-refresh"
               severity="secondary"
               size="small"
-              onClick={() => alert('Sinal de reinicialização enviado ao daemon cloudflared')}
+              onClick={() => alert(t('ais.zerotrust.restartSent'))}
             />
           </div>
         </div>
@@ -107,9 +109,9 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <Card
         title={
           <div className="flex justify-content-between align-items-center">
-            <span>Publicação de Aplicações via ZTNA (Cloudflare Access)</span>
+            <span>{t('ais.zerotrust.publishAppTitle')}</span>
             <Button
-              label="Publicar Novo Subdomínio"
+              label={t('ais.zerotrust.publishSubdomain')}
               icon="pi pi-plus"
               size="small"
               severity="success"
@@ -124,11 +126,11 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </p>
 
         <DataTable value={apps} size="small" className="noc-table">
-          <Column field="hostname" header="Domínio Público Externo" className="font-bold text-cyan-300" />
-          <Column field="internalServiceUrl" header="Endereço do Serviço Interno" body={(a: T.ZtnaAppPublish) => <code>{a.internalServiceUrl}</code>} />
+          <Column field="hostname" header={t('ais.zerotrust.colPublicDomain')} className="font-bold text-cyan-300" />
+          <Column field="internalServiceUrl" header={t('ais.zerotrust.colInternalService')} body={(a: T.ZtnaAppPublish) => <code>{a.internalServiceUrl}</code>} />
           <Column
             field="requireMfa"
-            header="Autenticação Nuvem"
+            header={t('ais.zerotrust.colCloudAuth')}
             body={(a: T.ZtnaAppPublish) => (
               <Tag value={a.requireMfa ? 'MFA / SSO Obrigatório' : 'Acesso Público'} severity={a.requireMfa ? 'success' : 'warning'} />
             )}
@@ -155,7 +157,7 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       {/* POLÍTICAS DE BORDA & DoH */}
       <div className="grid">
         <div className="col-12 md:col-6">
-          <Card title="Validação de JWT de Borda (Cf-Access-Jwt-Assertion)" className="noc-card">
+          <Card title={t('ais.zerotrust.jwtTitle')} className="noc-card">
             <p className="text-xs text-gray-300 mb-3">
               Garante que nenhuma requisição passe sem autenticação prévia validada pelo header criptográfico da Cloudflare.
             </p>
@@ -179,7 +181,7 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </div>
 
         <div className="col-12 md:col-6">
-          <Card title="DNS over HTTPS (DoH) / DNS over TLS" className="noc-card">
+          <Card title={t('ais.zerotrust.dohTitle')} className="noc-card">
             <p className="text-xs text-gray-300 mb-3">
               Encaminhamento criptografado de consultas DNS para o Cloudflare Gateway filtrado.
             </p>
@@ -207,7 +209,7 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <Dialog
         visible={appDialog}
         onHide={() => setAppDialog(false)}
-        header={<span className="font-bold font-orbitron">Publicar Aplicação Interna no ZTNA</span>}
+        header={<span className="font-bold font-orbitron">{t('ais.zerotrust.dialogPublish')}</span>}
         style={{ width: '500px' }}
         className="noc-dialog p-fluid"
         modal
@@ -236,8 +238,8 @@ export const ZeroTrustModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           />
         </div>
         <div className="flex justify-content-end gap-2 mt-4">
-          <Button label="Cancelar" text onClick={() => setAppDialog(false)} />
-          <Button label="Publicar Rota" icon="pi pi-check" severity="success" onClick={handlePublishApp} />
+          <Button label={t('common.cancel')} text onClick={() => setAppDialog(false)} />
+          <Button label={t('ais.zerotrust.publishRoute')} icon="pi pi-check" severity="success" onClick={handlePublishApp} />
         </div>
       </Dialog>
     </div>

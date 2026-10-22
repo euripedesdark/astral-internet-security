@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<T.ClamAvStatus>({
     clamdActive: true,
     freshclamLastUpdate: new Date().toISOString(),
@@ -73,19 +75,19 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <div className="grid mb-4">
         <div className="col-12 md:col-3">
           <Card className="noc-card text-center">
-            <span className="text-xs text-gray-500 block">DAEMON CLAMD</span>
+            <span className="text-xs text-gray-500 block">{t('ais.antivirus.daemonCard')}</span>
             <Tag value={status.clamdActive ? 'OPERACIONAL' : 'PARADO'} severity={status.clamdActive ? 'success' : 'danger'} className="mt-2 text-sm" />
           </Card>
         </div>
         <div className="col-12 md:col-3">
           <Card className="noc-card text-center">
-            <span className="text-xs text-gray-500 block">PONTE ICAP / STREAMING</span>
+            <span className="text-xs text-gray-500 block">{t('ais.antivirus.icapBridge')}</span>
             <Tag value={status.icapBridgeActive ? 'ICAP ATIVO' : 'OFFLINE'} severity={status.icapBridgeActive ? 'info' : 'warning'} className="mt-2 text-sm" />
           </Card>
         </div>
         <div className="col-12 md:col-3">
           <Card className="noc-card text-center">
-            <span className="text-xs text-gray-500 block">TOTAL DE ASSINATURAS</span>
+            <span className="text-xs text-gray-500 block">{t('ais.antivirus.signaturesCount')}</span>
             <span className="font-bold font-orbitron text-cyan-400 text-xl block mt-1">
               {status.signaturesTotal.toLocaleString()}
             </span>
@@ -93,7 +95,7 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </div>
         <div className="col-12 md:col-3">
           <Card className="noc-card text-center">
-            <span className="text-xs text-gray-500 block">AMEAÇAS BLOQUEADAS</span>
+            <span className="text-xs text-gray-500 block">{t('ais.antivirus.freshclamCard')}</span>
             <span className="font-bold font-orbitron text-red-400 text-xl block mt-1">
               {status.threatsDetectedCount}
             </span>
@@ -107,7 +109,7 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           <span className="text-xs text-cyan-400 font-mono">{status.freshclamLastUpdate}</span>
         </div>
         <Button
-          label="Forçar Atualização de Assinaturas Agora"
+          label={t('ais.antivirus.btnForceUpdate')}
           icon="pi pi-cloud-download"
           severity="success"
           size="small"
@@ -118,23 +120,23 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
 
       <TabView className="noc-tabs">
         {/* ABA 1: QUARENTENA CRIPTOGRAFADA */}
-        <TabPanel header="Quarentena Forense" leftIcon="pi pi-box mr-2">
+        <TabPanel header={t('ais.antivirus.tabQuarantine')} leftIcon="pi pi-box mr-2">
           <p className="text-xs text-gray-300 mb-3">
             Arquivos infectados bloqueados no gateway e mantidos em cofre criptografado para inspeção forense (ISO 27001 A.8.7).
           </p>
 
           <DataTable value={quarantine} size="small" className="noc-table" emptyMessage="Nenhum arquivo em quarentena. Gateway 100% seguro.">
-            <Column field="fileName" header="Nome do Arquivo" className="font-bold text-red-300" />
-            <Column field="threatName" header="Ameaça Detectada" body={(q: T.QuarantineItem) => <Tag value={q.threatName} severity="danger" />} />
-            <Column field="timestamp" header="Data / Hora da Detecção" />
+            <Column field="fileName" header={t('ais.antivirus.colFileName')} className="font-bold text-red-300" />
+            <Column field="threatName" header={t('ais.antivirus.colThreatDetected')} body={(q: T.QuarantineItem) => <Tag value={q.threatName} severity="danger" />} />
+            <Column field="timestamp" header={t('ais.antivirus.colDetectionTime')} />
             <Column field="fileSizeBytes" header="Tamanho" body={(q: T.QuarantineItem) => `${(q.fileSizeBytes / 1024).toFixed(1)} KB`} />
             <Column
-              header="Ações"
+              header={t('ais.antivirus.colActions')}
               body={(q: T.QuarantineItem) => (
                 <div className="flex gap-2">
                   <Button
                     icon="pi pi-trash"
-                    label="Excluir Definitivamente"
+                    label={t('ais.antivirus.btnDeleteForever')}
                     severity="danger"
                     size="small"
                     onClick={async () => {
@@ -145,12 +147,12 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
                   />
                   <Button
                     icon="pi pi-unlock"
-                    label="Liberar Falso Positivo"
+                    label={t('ais.antivirus.btnReleaseFp')}
                     severity="warning"
                     outlined
                     size="small"
                     onClick={() => {
-                      const reason = prompt('Informe a justificativa para liberar falso positivo:');
+                      const reason = prompt(t('ais.antivirus.promptFpReason'));
                       if (reason) {
                         SecurityApi.deleteQuarantine(q.id);
                         setQuarantine(quarantine.filter((x) => x.id !== q.id));
@@ -165,10 +167,10 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 2: LIMITES & PROTEÇÃO CONTRA ZIP BOMBS */}
-        <TabPanel header="Limites & Bypass Inteligente" leftIcon="pi pi-sliders-v mr-2">
+        <TabPanel header={t('ais.antivirus.tabLimits')} leftIcon="pi pi-sliders-v mr-2">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <Card title="Proteção contra Bombas de Descompactação (Zip Bombs)" className="noc-card mb-3">
+              <Card title={t('ais.antivirus.zipBombsTitle')} className="noc-card mb-3">
                 <div className="field mb-3">
                   <label className="text-xs font-bold text-gray-300">Recursão Máxima de Arquivos Compactados (.zip, .rar, .tar.gz):</label>
                   <InputText
@@ -194,7 +196,7 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
                   />
                 </div>
                 <Button
-                  label="Salvar Parâmetros de Varredura"
+                  label={t('ais.antivirus.btnSaveLimits')}
                   severity="info"
                   size="small"
                   onClick={async () => {
@@ -206,7 +208,7 @@ export const AntivirusModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <div className="col-12 md:col-6">
-              <Card title="Bypass Inteligente de Performance" className="noc-card mb-3">
+              <Card title={t('ais.antivirus.bypassTitle')} className="noc-card mb-3">
                 <div className="flex align-items-center justify-content-between mb-3 p-2 border-bottom-1 border-gray-800">
                   <div>
                     <span className="font-bold block">Ignorar Fluxos de Streaming de Mídia Contínuos</span>

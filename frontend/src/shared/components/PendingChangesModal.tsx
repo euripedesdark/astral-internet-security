@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -20,6 +21,7 @@ export const PendingChangesModal: React.FC<Props> = ({
   diffBefore,
   diffAfter,
 }) => {
+  const { t } = useTranslation();
   const [author, setAuthor] = useState('admin.sec@astral.corp');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ alg.sip = false
 
   const handleConfirm = async () => {
     if (!reason.trim()) {
-      setError('O motivo da alteração é obrigatório conforme Controle ISO/IEC 27001 A.8.32');
+      setError(t('ais.modal.reasonRequired'));
       return;
     }
     setError('');
@@ -52,7 +54,7 @@ alg.sip = false
       await onApply(author, reason);
       onHide();
     } catch (e: any) {
-      setError(e.message || 'Falha ao aplicar alterações');
+      setError(e.message || 'Error');
     } finally {
       setLoading(false);
     }
@@ -66,9 +68,9 @@ alg.sip = false
         <div className="flex align-items-center gap-2">
           <i className="pi pi-shield text-cyan-400 text-xl" />
           <span className="font-bold text-lg font-orbitron">
-            Gestão de Mudanças ISO 27001 (A.8.32) - Aplicar Alterações
+            {t('ais.modal.title')}
           </span>
-          <Tag value="Rastreabilidade Ativa" severity="warning" />
+          <Tag value={t('ais.modal.traceabilityActive')} severity="warning" />
         </div>
       }
       style={{ width: '820px' }}
@@ -77,19 +79,19 @@ alg.sip = false
     >
       <div className="p-2">
         <p className="text-sm text-gray-300 mb-3">
-          Nenhuma alteração de segurança é publicada em produção sem registro auditável. Revise as diferenças (Diff) antes de efetivar e informe a justificativa técnica.
+          {t('ais.modal.desc')}
         </p>
 
         <div className="grid mb-3">
           <div className="col-6">
             <label className="text-xs font-bold text-gray-400 block mb-1">
-              ESTADO ATUAL (EM EXECUÇÃO)
+              {t('ais.modal.currentState')}
             </label>
             <pre className="diff-view diff-before">{defaultBefore}</pre>
           </div>
           <div className="col-6">
             <label className="text-xs font-bold text-cyan-400 block mb-1">
-              NOVO ESTADO PROPOSTO (DIFF APÓS APLICAÇÃO)
+              {t('ais.modal.proposedState')}
             </label>
             <pre className="diff-view diff-after">{defaultAfter}</pre>
           </div>
@@ -97,25 +99,25 @@ alg.sip = false
 
         <div className="field mb-3">
           <label className="font-bold text-sm text-gray-300">
-            Operador / Autor da Mudança (Controle A.8.2) *
+            {t('ais.modal.operatorField')} *
           </label>
           <InputText
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
-            placeholder="Nome ou e-mail corporativo do administrador"
+            placeholder={t('ais.modal.operatorPlaceholder')}
             className="p-inputtext-sm"
           />
         </div>
 
         <div className="field mb-3">
           <label className="font-bold text-sm text-gray-300">
-            Motivo / Justificativa Técnica da Mudança (Controle A.8.32) *
+            {t('ais.modal.reasonField')} *
           </label>
           <InputTextarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
-            placeholder="Ex: Liberação de tráfego HTTPS seguro para novo servidor ERP da DMZ conforme chamado TIK-8492"
+            placeholder={t('ais.modal.reasonPlaceholder')}
             className="p-inputtext-sm"
           />
         </div>
@@ -123,9 +125,9 @@ alg.sip = false
         {error && <div className="p-message p-message-error mb-3">{error}</div>}
 
         <div className="flex justify-content-end gap-2 mt-4">
-          <Button label="Cancelar" icon="pi pi-times" text onClick={onHide} disabled={loading} />
+          <Button label={t('common.cancel')} icon="pi pi-times" text onClick={onHide} disabled={loading} />
           <Button
-            label={loading ? 'Aplicando e Gravando Trilha...' : 'Confirmar e Publicar Regras'}
+            label={loading ? t('ais.modal.applying') : t('ais.modal.confirmButton')}
             icon="pi pi-check"
             severity="success"
             onClick={handleConfirm}

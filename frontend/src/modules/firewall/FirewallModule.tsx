@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [rules, setRules] = useState<T.FirewallRule[]>([]);
   const [zones, setZones] = useState<T.NetworkZone[]>([]);
   const [aliases, setAliases] = useState<T.AliasObject[]>([]);
@@ -142,24 +144,24 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     if (r.action === 'ACCEPT' && isWan && (isAnyPort || isCriticalPort) && isAnyDest) {
       return (
         <Tag
-          value="RISCO ISO 27001: Exposição Crítica"
+          value={t('ais.firewall.riskCritical')}
           severity="danger"
           icon="pi pi-exclamation-triangle"
-          title="Regra viola Controle A.8.20: Exposição de portas sensíveis na interface WAN sem isolamento Zero Trust"
+          title={t('ais.firewall.riskViolation')}
         />
       );
     }
     if (r.action === 'ACCEPT' && !r.logEnabled) {
       return (
         <Tag
-          value="Alerta A.8.15: Sem Log"
+          value={t('ais.firewall.alertNoLog')}
           severity="warning"
           icon="pi pi-info-circle"
-          title="Recomendação ISO 27001: Ativar registro de log para auditoria e SIEM"
+          title={t('ais.firewall.alertRecommendation')}
         />
       );
     }
-    return <Tag value="Conforme ISO 27001" severity="success" icon="pi pi-check-circle" />;
+    return <Tag value={t('ais.firewall.compliant')} severity="success" icon="pi pi-check-circle" />;
   };
 
   const filteredRules = selectedZone === 'ALL' ? rules : rules.filter((r) => r.zone === selectedZone);
@@ -168,10 +170,10 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     <div className="noc-module">
       <TabView className="noc-tabs">
         {/* TAB 1: REGRAS DE FIREWALL */}
-        <TabPanel header="Regras de Filtragem (SPI)" leftIcon="pi pi-shield mr-2">
+        <TabPanel header={t('ais.firewall.tabRules')} leftIcon="pi pi-shield mr-2">
           <div className="flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div className="flex align-items-center gap-2">
-              <span className="text-sm font-bold text-gray-300">Filtrar por Zona:</span>
+              <span className="text-sm font-bold text-gray-300">{t('ais.firewall.filterByZone')}</span>
               <div className="flex gap-1">
                 {['ALL', 'WAN', 'LAN', 'DMZ', 'Guest', 'VPN_ZTNA'].map((z) => (
                   <Button
@@ -187,7 +189,7 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <Button
-              label="Nova Regra de Firewall"
+              label={t('ais.firewall.newRule')}
               icon="pi pi-plus"
               severity="success"
               size="small"
@@ -227,7 +229,7 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             <Column rowReorder style={{ width: '3rem' }} />
             <Column
               field="enabled"
-              header="Ativo"
+              header={t('ais.firewall.colActive')}
               style={{ width: '4.5rem' }}
               body={(r: T.FirewallRule) => (
                 <InputSwitch checked={r.enabled} onChange={() => handleToggleRule(r)} />
@@ -235,26 +237,26 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             />
             <Column
               field="action"
-              header="Ação"
+              header={t('ais.firewall.colAction')}
               style={{ width: '6rem' }}
               body={(r: T.FirewallRule) => {
                 const sev = r.action === 'ACCEPT' ? 'success' : r.action === 'DROP' ? 'danger' : 'warning';
                 return <Tag value={r.action} severity={sev} />;
               }}
             />
-            <Column field="zone" header="Zona" style={{ width: '6.5rem' }} />
-            <Column field="name" header="Identificador / Regra" className="font-bold text-cyan-300" />
-            <Column field="protocol" header="Proto" style={{ width: '5.5rem' }} />
+            <Column field="zone" header={t('ais.firewall.colZone')} style={{ width: '6.5rem' }} />
+            <Column field="name" header={t('ais.firewall.colIdentifier')} className="font-bold text-cyan-300" />
+            <Column field="protocol" header={t('ais.firewall.colProto')} style={{ width: '5.5rem' }} />
             <Column
-              header="Origem"
+              header={t('ais.firewall.colOrigin')}
               body={(r: T.FirewallRule) => r.sourceIp || r.sourceMac || '0.0.0.0/0 (Any)'}
             />
             <Column
-              header="Destino : Porta"
+              header={t('ais.firewall.colDestPort')}
               body={(r: T.FirewallRule) => `${r.destinationIp || 'Any'} : ${r.port || 'Any'}`}
             />
             <Column
-              header="Tráfego (Hits / Bytes)"
+              header={t('ais.firewall.colTraffic')}
               body={(r: T.FirewallRule) => (
                 <div className="text-xs font-mono text-gray-300">
                   <span className="text-cyan-400 font-bold">{r.hits || 1240} hits</span> |{' '}
@@ -263,11 +265,11 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
               )}
             />
             <Column
-              header="Auditoria ISO 27001"
+              header={t('ais.firewall.colIsoAudit')}
               body={(r: T.FirewallRule) => getIsoRiskBadge(r)}
             />
             <Column
-              header="Ações"
+              header={t('ais.firewall.colActions')}
               style={{ width: '4rem' }}
               body={(r: T.FirewallRule) => (
                 <Button
@@ -283,13 +285,13 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* TAB 2: GESTOR DE OBJETOS & ALIASES */}
-        <TabPanel header="Objetos e Aliases" leftIcon="pi pi-database mr-2">
+        <TabPanel header={t('ais.firewall.tabAliases')} leftIcon="pi pi-database mr-2">
           <div className="flex justify-content-between align-items-center mb-3">
             <span className="text-sm text-gray-300">
               Agrupamento lógico de IPs, Redes e Portas para regras granulares limpas (ISO 27001 A.8.20).
             </span>
             <Button
-              label="Novo Alias"
+              label={t('ais.firewall.newAlias')}
               icon="pi pi-plus"
               size="small"
               severity="info"
@@ -298,15 +300,15 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           </div>
 
           <DataTable value={aliases} size="small" className="noc-table">
-            <Column field="name" header="Nome do Alias" className="font-bold text-cyan-300" />
+            <Column field="name" header={t('ais.firewall.colAliasName')} className="font-bold text-cyan-300" />
             <Column
               field="aliasType"
-              header="Tipo"
+              header={t('ais.firewall.colAliasType')}
               body={(a: T.AliasObject) => <Tag value={a.aliasType} severity="info" />}
             />
             <Column
               field="entries"
-              header="Itens Agrupados"
+              header={t('ais.firewall.colGroupedItems')}
               body={(a: T.AliasObject) => (
                 <div className="flex gap-1 flex-wrap">
                   {(a.entries || []).map((e, i) => (
@@ -315,7 +317,7 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
                 </div>
               )}
             />
-            <Column field="description" header="Descrição" />
+            <Column field="description" header={t('ais.firewall.colDesc')} />
             <Column
               style={{ width: '4rem' }}
               body={(a: T.AliasObject) => (
@@ -336,10 +338,10 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* TAB 3: PROTEÇÃO AVANÇADA (ANTI-SPOOFING, BOGON, RATE LIMIT, GEOIP) */}
-        <TabPanel header="Proteções DoS & Bogon" leftIcon="pi pi-lock mr-2">
+        <TabPanel header={t('ais.firewall.tabDos')} leftIcon="pi pi-lock mr-2">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <Card title="Anti-Spoofing & Filtragem Bogon (RFC 1918)" className="noc-card mb-3">
+              <Card title={t('ais.firewall.antiSpoofingTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-4">
                   Bloqueio incondicional na interface WAN de endereços falsificados e redes privadas que não devem trafegar na internet pública.
                 </p>
@@ -368,7 +370,7 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <div className="col-12 md:col-6">
-              <Card title="Mitigação DoS / Rate Limiting (SYN / UDP Flood)" className="noc-card mb-3">
+              <Card title={t('ais.firewall.rateLimitTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Controle de taxa e estouro de conexões simultâneas para prevenção de exaustão de tabela conntrack.
                 </p>
@@ -412,13 +414,13 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* TAB 4: GEOIP BLOCKING */}
-        <TabPanel header="Bloqueio GeoIP" leftIcon="pi pi-globe mr-2">
+        <TabPanel header={t('ais.firewall.tabGeoip')} leftIcon="pi pi-globe mr-2">
           <div className="flex justify-content-between align-items-center mb-3">
             <span className="text-sm text-gray-300">
               Restrição geográfica de tráfego de entrada e saída por país de origem do endereço IP (ISO 27001 A.8.20).
             </span>
             <Button
-              label="Bloquear País"
+              label={t('ais.firewall.blockCountry')}
               icon="pi pi-plus"
               size="small"
               severity="danger"
@@ -440,13 +442,13 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           </div>
 
           <DataTable value={geoIps} size="small" className="noc-table">
-            <Column field="countryCode" header="Código País" className="font-bold text-cyan-300" />
+            <Column field="countryCode" header={t('ais.firewall.colCountryCode')} className="font-bold text-cyan-300" />
             <Column
               field="action"
               header="Ação"
               body={(g: T.GeoIpPolicy) => <Tag value={g.action} severity={g.action === 'BLOCK' ? 'danger' : 'success'} />}
             />
-            <Column field="direction" header="Direção" />
+            <Column field="direction" header={t('ais.firewall.colDirection')} />
             <Column
               field="enabled"
               header="Status"
@@ -476,7 +478,7 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <Dialog
         visible={ruleDialog}
         onHide={() => setRuleDialog(false)}
-        header={<span className="font-bold font-orbitron">Cadastrar Regra Granular de Firewall</span>}
+        header={<span className="font-bold font-orbitron">{t('ais.firewall.dialogNewRule')}</span>}
         style={{ width: '640px' }}
         className="noc-dialog p-fluid"
         modal
@@ -580,8 +582,8 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </div>
 
         <div className="flex justify-content-end gap-2 mt-4">
-          <Button label="Cancelar" text onClick={() => setRuleDialog(false)} />
-          <Button label="Salvar Regra" icon="pi pi-check" severity="success" onClick={handleSaveRule} />
+          <Button label={t('common.cancel')} text onClick={() => setRuleDialog(false)} />
+          <Button label={t('ais.firewall.saveRule')} icon="pi pi-check" severity="success" onClick={handleSaveRule} />
         </div>
       </Dialog>
 
@@ -589,7 +591,7 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
       <Dialog
         visible={aliasDialog}
         onHide={() => setAliasDialog(false)}
-        header={<span className="font-bold font-orbitron">Cadastrar Objeto / Alias</span>}
+        header={<span className="font-bold font-orbitron">{t('ais.firewall.dialogNewAlias')}</span>}
         style={{ width: '480px' }}
         className="noc-dialog p-fluid"
         modal
@@ -636,8 +638,8 @@ export const FirewallModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </div>
 
         <div className="flex justify-content-end gap-2 mt-4">
-          <Button label="Cancelar" text onClick={() => setAliasDialog(false)} />
-          <Button label="Salvar Alias" icon="pi pi-check" severity="info" onClick={handleSaveAlias} />
+          <Button label={t('common.cancel')} text onClick={() => setAliasDialog(false)} />
+          <Button label={t('ais.firewall.saveAlias')} icon="pi pi-check" severity="info" onClick={handleSaveAlias} />
         </div>
       </Dialog>
     </div>

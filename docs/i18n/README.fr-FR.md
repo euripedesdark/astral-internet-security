@@ -1,36 +1,54 @@
-# Astral Internet Security
+# Astral Internet Security — Documentation (Français)
 
-![Licence](https://img.shields.io/badge/License-AGPLv3-blue.svg)
-![Rust](https://img.shields.io/badge/Rust-1.80%2B%20%2F%20OOP-orange.svg)
-![Axum](https://img.shields.io/badge/Axum-0.8-blue.svg)
-![Tokio](https://img.shields.io/badge/Runtime-Tokio%20Async-brightgreen.svg)
-![Netfilter](https://img.shields.io/badge/Firewall-Netfilter%20%2F%20eBPF-brightgreen.svg)
+![Licence](https://img.shields.io/badge/License-Propriétaire-red.svg)
+![Rust](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)
+![ISO 27001](https://img.shields.io/badge/Security-ISO%2FIEC%2027001-blue.svg)
+![i18n](https://img.shields.io/badge/i18n-4%20Langues-green.svg)
 
-**Pare-feu Stateful, Passerelle et Atténuation des Menaces en Rust** — Module de sécurité périmétrique haute performance de l'écosystème Astral, conçu avec une architecture orientée objet en Rust, le runtime Tokio et le serveur Axum.
-
-Distribué sous licence **GNU AGPL v3**. Voir [`LICENSE.md`](LICENSE.md).
+Passerelle de Sécurité Périmétrique Haute Performance en Rust, conçue selon les exigences de la norme ISO/IEC 27001:2022.
 
 ---
 
-## 🎯 Fonctionnalités Clés
+## 7 Modules de Sécurité
 
-- **Architecture Orientée Objet en Rust** : Structuration en couches (`domain/`, `service/`, `controller/`), traits asynchrones et dispatch dynamique.
-- **Filtrage Stateful & Passerelle** : Inspection de paquets Netfilter/nftables/eBPF, translation d'adresses (NAT/SNAT), et redirection de ports (DNAT).
-- **Protection Active & Anti-Abus** : Limitation de débit (Rate Limiting), bannissement automatique (Auto-Ban) et Mode Panique instantané.
-- **Console Web Réactive** : Interface SPA moderne avec React 18, Vite et TypeScript supportant 4 langues.
+1. **Moteur Pare-feu Stateful (SPI & Zones)**:
+   - Suivi d'état des connexions en temps réel (Conntrack).
+   - Protection Anti-Spoofing et filtrage Bogon (RFC 1918).
+   - Atténuation DoS/DDoS adaptative (SYN, ICMP, UDP Flood) et filtrage GeoIP.
+2. **Moteur NAT & Redirection**:
+   - DNAT (Port Forwarding), SNAT Masquerade, NAT statique 1:1 et NPTv6.
+   - NAT Hairpinning pour accès interne via IP publique.
+   - Prise en charge des ALGs (SIP, FTP, TFTP, PPTP).
+3. **Passerelle Multi-WAN & Filtrage Web**:
+   - Surveillance de la santé des liens WAN avec basculement automatique (Failover).
+   - Routage basé sur des politiques (PBR) et QoS Cake.
+   - Sinkhole DNS neutralisant les connexions de botnets vers les centres C2.
+4. **Cloudflare Zero Trust (ZTNA)**:
+   - Connecteur Argo Tunnel (`cloudflared`) natif sans port d'entrée ouvert.
+   - Validation des assertions JWT et résolution DNS sécurisée (DoH).
+5. **OpenVPN & Gestionnaire PKI**:
+   - Autorité de Certification locale X.509 avec révocation CRL instantanée.
+   - Accélération DCO dans le noyau Linux et téléchargement de profils `.ovpn`.
+6. **Antivirus ClamAV & ICAP**:
+   - Analyse de flux via protocole ICAP et mise à jour Freshclam.
+   - Quarantaine judiciaire et prévention des bombes de décompression.
+7. **Gouvernance ISO 27001 & Audit**:
+   - Gestion des Changements (Contrôle A.8.32) avec revue de Diff et justification requise.
+   - Instantanés de configuration avec restauration d'urgence (Rollback).
+   - Synchronisation d'horloge NTP (Contrôle A.8.17) et transfert Syslog TLS vers SIEM.
 
 ---
 
-## 💖 Soutenir le Projet
+## Console NOC/SOC en 4 Langues
 
-**Virement International (Wise):**
-- **Bénéficiaire:** Euripedes Batista de Paiva Junior
-- **Routing number (Wire / ACH):** `101019628`
-- **Numéro de compte:** `215822927677`
-- **Banque:** Wise US Inc, 108 W 13th St, Wilmington, DE, 19801, United States
-- **SWIFT / BIC:** `TRWIUS35XXX`
-- **PIX (Brésil):** `24adc62c-b073-4587-974d-03fe35f6733f`
+Interface SPA React 18 avec prise en charge dynamique de 4 langues :
+- Français (fr-FR)
+- Portugais (pt-BR)
+- Anglais (en-US)
+- Espagnol (es-ES)
 
 ---
 
-(c) 2026 Astral Internet Security — **Créé par : Euripedes Batista de Paiva Junior**
+## Licence
+
+Copyright (C) Astral Software. Tous droits réservés. Licence Commerciale Propriétaire.

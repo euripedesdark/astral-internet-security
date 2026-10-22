@@ -58,14 +58,14 @@ function App() {
   };
 
   const navItems = [
-    { id: 'overview', label: 'Painel Central NOC/SOC', icon: 'pi pi-home' },
-    { id: 'firewall', label: '1. Motor de Firewall (SPI & Zonas)', icon: 'pi pi-shield' },
-    { id: 'nat', label: '2. Motor de NAT & Forwarding', icon: 'pi pi-arrow-right-arrow-left' },
-    { id: 'gateway', label: '3. Gateway Multi-WAN & Web Filter', icon: 'pi pi-sitemap' },
-    { id: 'zero_trust', label: '4. Cloudflare Zero Trust (ZTNA)', icon: 'pi pi-cloud' },
-    { id: 'vpn', label: '5. Túnel OpenVPN & PKI', icon: 'pi pi-lock' },
-    { id: 'antivirus', label: '6. Antivírus ClamAV & ICAP', icon: 'pi pi-shield' },
-    { id: 'compliance', label: '7. Governança ISO 27001 & Auditoria', icon: 'pi pi-check-circle' },
+    { id: 'overview', label: t('ais.nav.overview'), icon: 'pi pi-home' },
+    { id: 'firewall', label: t('ais.nav.firewall'), icon: 'pi pi-shield' },
+    { id: 'nat', label: t('ais.nav.nat'), icon: 'pi pi-arrow-right-arrow-left' },
+    { id: 'gateway', label: t('ais.nav.gateway'), icon: 'pi pi-sitemap' },
+    { id: 'zero_trust', label: t('ais.nav.zero_trust'), icon: 'pi pi-cloud' },
+    { id: 'vpn', label: t('ais.nav.vpn'), icon: 'pi pi-lock' },
+    { id: 'antivirus', label: t('ais.nav.antivirus'), icon: 'pi pi-shield' },
+    { id: 'compliance', label: t('ais.nav.compliance'), icon: 'pi pi-check-circle' },
   ];
 
   return (
@@ -76,13 +76,13 @@ function App() {
           <div className="flex align-items-center gap-2">
             <span className="pulsing-dot bg-amber-400" />
             <span className="font-bold text-sm text-amber-200">
-              Existem alterações de configuração não publicadas em produção.
+              {t('ais.pending.bannerText')}
             </span>
-            <Tag value="Controle A.8.32" severity="warning" />
+            <Tag value={t('ais.pending.controlTag')} severity="warning" />
           </div>
           <div className="flex gap-2">
             <Button
-              label="Revisar Diff e Aplicar Mudanças"
+              label={t('ais.pending.reviewDiffButton')}
               icon="pi pi-check"
               severity="warning"
               size="small"
@@ -95,17 +95,17 @@ function App() {
       {/* 2. TOPBAR COM MONITOR NTP E INFORMAÇÕES DE SESSÃO */}
       <header className="topbar">
         <div className="brand">
-          ASTRAL<small>Internet Security • ISO/IEC 27001 Gateway</small>
+          ASTRAL<small>{t('ais.app.brandSubtitle')}</small>
         </div>
 
         <div className="topright">
           {/* Alerta NTP caso dessincronizado */}
           {ntpStatus && (
             <Tag
-              value={ntpStatus.synchronized ? `NTP: ${ntpStatus.ntpServer}` : 'ALERTA: NTP DESSINCRONIZADO'}
+              value={ntpStatus.synchronized ? `NTP: ${ntpStatus.ntpServer}` : t('ais.app.ntpOutOfSync')}
               severity={ntpStatus.synchronized ? 'success' : 'danger'}
               icon="pi pi-clock"
-              title={`Estrato ${ntpStatus.stratum} • Desvio ± ${ntpStatus.offsetMs} ms`}
+              title={`${t('ais.app.stratum')} ${ntpStatus.stratum} • ${t('ais.app.offset')} ± ${ntpStatus.offsetMs} ms`}
             />
           )}
 
@@ -133,7 +133,7 @@ function App() {
       {/* 3. CORPO PRINCIPAL COM SIDEBAR NOC/SOC */}
       <div className="noc-shell">
         <aside className="noc-sidebar">
-          <div className="noc-sidebar-header">PAINEL OPERACIONAL</div>
+          <div className="noc-sidebar-header">{t('ais.app.sidebarHeader')}</div>
           <nav className="noc-nav-list">
             {navItems.map((item) => (
               <button

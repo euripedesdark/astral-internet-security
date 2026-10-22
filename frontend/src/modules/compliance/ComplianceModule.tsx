@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<T.AuditLogEntry[]>([]);
   const [logFilter, setLogFilter] = useState('');
   const [selectedModule, setSelectedModule] = useState('ALL');
@@ -72,7 +74,7 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
   }, []);
 
   const handleRollback = async (id: string) => {
-    if (confirm('Fazer Rollback imediato para esta versão anterior de configuração? Todas as regras serão restauradas ao estado do snapshot.')) {
+    if (confirm(t('ais.compliance.rollbackConfirm'))) {
       await SecurityApi.rollbackSnapshot(id);
       loadData();
       onStateChangeNotify();
@@ -84,7 +86,7 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     try {
       const b = await SecurityApi.triggerBackup();
       setBackup(b);
-      alert(`Backup criptografado gerado com sucesso em ${b.targetStorage}`);
+      alert(t('ais.compliance.backupSuccess') + b.targetStorage);
     } finally {
       setBackingUp(false);
     }
@@ -105,10 +107,10 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
     <div className="noc-module">
       <TabView className="noc-tabs">
         {/* ABA 1: LIVE TAIL & AUDITORIA */}
-        <TabPanel header="Logs em Tempo Real & SIEM" leftIcon="pi pi-desktop mr-2">
+        <TabPanel header={t('ais.compliance.tabSiem')} leftIcon="pi pi-desktop mr-2">
           <div className="flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div className="flex gap-2 align-items-center">
-              <span className="text-xs font-bold text-gray-400">Filtrar Módulo:</span>
+              <span className="text-xs font-bold text-gray-400">{t('ais.compliance.filterModule')}</span>
               {['ALL', 'FirewallEngine', 'NatEngine', 'VpnEngine', 'ClamAV'].map((m) => (
                 <Button
                   key={m}
@@ -131,10 +133,10 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
           </div>
 
           <DataTable value={filteredLogs} size="small" className="noc-table" paginator rows={15}>
-            <Column field="timestamp" header="Data / Hora (UTC)" style={{ width: '13rem' }} />
-            <Column field="operator" header="Operador" className="font-bold text-cyan-300" style={{ width: '10rem' }} />
-            <Column field="action" header="Ação" style={{ width: '10rem' }} />
-            <Column field="module" header="Módulo" style={{ width: '9rem' }} />
+            <Column field="timestamp" header={t('ais.compliance.colUtcTimestamp')} style={{ width: '13rem' }} />
+            <Column field="operator" header={t('ais.compliance.colOperator')} className="font-bold text-cyan-300" style={{ width: '10rem' }} />
+            <Column field="action" header={t('ais.compliance.colAction')} style={{ width: '10rem' }} />
+            <Column field="module" header={t('ais.compliance.colModule')} style={{ width: '9rem' }} />
             <Column
               field="status"
               header="Status"
@@ -144,13 +146,13 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
                 return <Tag value={l.status} severity={sev} />;
               }}
             />
-            <Column field="details" header="Detalhes Auditáveis" />
-            <Column field="clientIp" header="IP Origem" style={{ width: '8rem' }} />
+            <Column field="details" header={t('ais.compliance.colAuditDetails')} />
+            <Column field="clientIp" header={t('ais.compliance.colOriginIp')} style={{ width: '8rem' }} />
           </DataTable>
         </TabPanel>
 
         {/* ABA 2: HISTÓRICO DE MUDANÇAS & ROLLBACK (A.8.32) */}
-        <TabPanel header="Gestão de Mudanças & Rollback" leftIcon="pi pi-history mr-2">
+        <TabPanel header={t('ais.compliance.tabRollback')} leftIcon="pi pi-history mr-2">
           <p className="text-xs text-gray-300 mb-3">
             Histórico imutável de revisões de configuração conforme Controle ISO/IEC 27001 A.8.32. Permite auditoria completa e Rollback com 1 clique.
           </p>
@@ -162,15 +164,15 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
               style={{ width: '6rem' }}
               body={(s: T.ConfigSnapshot) => <Tag value={`v${s.version}`} severity="info" className="font-orbitron" />}
             />
-            <Column field="timestamp" header="Data / Hora da Aplicação" style={{ width: '14rem' }} />
-            <Column field="author" header="Autor da Mudança" className="font-bold text-cyan-300" style={{ width: '14rem' }} />
-            <Column field="description" header="Justificativa Técnica da Mudança" />
+            <Column field="timestamp" header={t('ais.compliance.colAppliedTime')} style={{ width: '14rem' }} />
+            <Column field="author" header={t('ais.compliance.colChangeAuthor')} className="font-bold text-cyan-300" style={{ width: '14rem' }} />
+            <Column field="description" header={t('ais.compliance.colTechnicalJustification')} />
             <Column
               header="Ação"
               style={{ width: '10rem' }}
               body={(s: T.ConfigSnapshot) => (
                 <Button
-                  label="Rollback Imediato"
+                  label={t('ais.compliance.btnRollback')}
                   icon="pi pi-undo"
                   severity="warning"
                   size="small"
@@ -182,10 +184,10 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 3: SYSLOG SIEM & NTP (A.8.15 / A.8.17) */}
-        <TabPanel header="Syslog SIEM & Sincronismo NTP" leftIcon="pi pi-clock mr-2">
+        <TabPanel header={t('ais.compliance.tabSyslog')} leftIcon="pi pi-clock mr-2">
           <div className="grid">
             <div className="col-12 md:col-6">
-              <Card title="Exportação Syslog Remoto TLS (RFC 5424)" className="noc-card mb-3">
+              <Card title={t('ais.compliance.syslogTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   Transmissão contínua e criptografada de todos os eventos para SIEM corporativo externo (Splunk, Elastic, Sentinel).
                 </p>
@@ -217,7 +219,7 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
                   />
                 </div>
                 <Button
-                  label="Salvar Parâmetros Syslog"
+                  label={t('ais.compliance.btnSaveSyslog')}
                   size="small"
                   severity="info"
                   onClick={async () => {
@@ -229,7 +231,7 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
             </div>
 
             <div className="col-12 md:col-6">
-              <Card title="Sincronização de Relógio NTP (Controle A.8.17)" className="noc-card mb-3">
+              <Card title={t('ais.compliance.ntpTitle')} className="noc-card mb-3">
                 <p className="text-xs text-gray-300 mb-3">
                   A precisão temporal é requisito inegociável da ISO 27001 para correlação forense de evidências em tribunais.
                 </p>
@@ -258,8 +260,8 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
         </TabPanel>
 
         {/* ABA 4: BACKUP CRIPTOGRAFADO (A.8.13) */}
-        <TabPanel header="Backup Criptografado (A.8.13)" leftIcon="pi pi-database mr-2">
-          <Card title="Cofre de Backup Automatizado" className="noc-card">
+        <TabPanel header={t('ais.compliance.tabBackup')} leftIcon="pi pi-database mr-2">
+          <Card title={t('ais.compliance.backupVaultTitle')} className="noc-card">
             <p className="text-xs text-gray-300 mb-4">
               Exportação do estado completo de configurações protegido por AES-256 e assinatura de integridade SHA-512 (ISO 27001 A.8.13).
             </p>
@@ -274,7 +276,7 @@ export const ComplianceModule: React.FC<Props> = ({ onStateChangeNotify }) => {
               </div>
             </div>
             <Button
-              label="Executar Backup Criptografado Imediato"
+              label={t('ais.compliance.btnTriggerBackup')}
               icon="pi pi-save"
               severity="success"
               onClick={handleTriggerBackup}
