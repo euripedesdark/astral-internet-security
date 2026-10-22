@@ -49,12 +49,16 @@ impl FirewallServer {
             .allow_methods(Any)
             .allow_headers(Any);
 
-        let static_dir = if std::path::Path::new("/opt/astral-internet-security/static/app/index.html").exists() {
+        let static_dir = if std::path::Path::new("/opt/astral-internet-security/static/firewall/index.html").exists() {
+            std::path::PathBuf::from("/opt/astral-internet-security/static/firewall")
+        } else if std::path::Path::new("./src/main/resources/static/firewall/index.html").exists() {
+            std::path::PathBuf::from("./src/main/resources/static/firewall")
+        } else if std::path::Path::new("/opt/astral-internet-security/static/app/index.html").exists() {
             std::path::PathBuf::from("/opt/astral-internet-security/static/app")
         } else if std::path::Path::new("./src/main/resources/static/app/index.html").exists() {
             std::path::PathBuf::from("./src/main/resources/static/app")
         } else {
-            std::path::PathBuf::from("/opt/astral-internet-security/static/app")
+            std::path::PathBuf::from("/opt/astral-internet-security/static/firewall")
         };
 
         let index_file = static_dir.join("index.html");
@@ -62,8 +66,7 @@ impl FirewallServer {
 
         Router::new()
             .route("/", get(|| async { axum::response::Redirect::temporary("/firewall/") }))
-            .nest_service("/firewall", serve_dir.clone())
-            .nest_service("/app", serve_dir)
+            .nest_service("/firewall", serve_dir)
             // 0. Health checks
             .route(
                 "/health",

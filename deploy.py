@@ -23,8 +23,8 @@ PORT = 8084
 GLOBAL_DIR = "/opt/astral-internet-security"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(APP_DIR, "frontend")
-STATIC_BUILD_DIR = os.path.join(APP_DIR, "src", "main", "resources", "static", "app")
-TARGET_STATIC_DIR = os.path.join(GLOBAL_DIR, "static", "app")
+STATIC_BUILD_DIR = os.path.join(APP_DIR, "src", "main", "resources", "static", "firewall")
+TARGET_STATIC_DIR = os.path.join(GLOBAL_DIR, "static", "firewall")
 SUDO_PASS = "Btf1_Mk3"
 
 GREEN = "\033[0;32m"
@@ -84,7 +84,7 @@ def main():
 
     # 4. Publicação no Diretório do Sistema (/opt/...)
     log(f"Instalando binário e arquivos no diretório global {GLOBAL_DIR}...", BLUE)
-    run_sudo(f"mkdir -p {GLOBAL_DIR} {TARGET_STATIC_DIR} /etc/astral")
+    run_sudo(f"mkdir -p {GLOBAL_DIR} {TARGET_STATIC_DIR} /etc/astral && rm -rf {GLOBAL_DIR}/static/app")
     target_bin = os.path.join(GLOBAL_DIR, SERVICE_NAME)
     
     cp_res = run_sudo(f"cp -f {bin_path} {target_bin}")
@@ -131,7 +131,7 @@ def main():
 
     print(f"\n{BLUE}{BOLD}============================================================{NC}")
     print(f"{GREEN}{BOLD}   Publicação e deploy concluídos com 100% de sucesso!       {NC}")
-    print(f"{BLUE}{BOLD}   Acesse a UI em: http://192.168.2.10:{PORT}/app/          {NC}")
+    print(f"{BLUE}{BOLD}   Acesse a UI em: https://192.168.2.10/firewall/ ou http://192.168.2.10:{PORT}/firewall/          {NC}")
     print(f"{BLUE}{BOLD}============================================================{NC}")
 
 if __name__ == "__main__":

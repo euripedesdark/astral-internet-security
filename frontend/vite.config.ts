@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/firewall/',
   build: {
-    outDir: '../src/main/resources/static/app',
+    outDir: '../src/main/resources/static/firewall',
     emptyOutDir: true
   }
 });
