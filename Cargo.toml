@@ -16,3 +16,23 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 http = "1"
 uuid = { version = "1.10", features = ["v4", "serde"] }
 async-trait = "0.1"
+
+[[bin]]
+name = "astral-internet-security"
+path = "src/main.rs"
+
+[[bin]]
+name = "install"
+path = "src/bin/install.rs"
+
+[[bin]]
+name = "uninstall"
+path = "src/bin/uninstall.rs"
+
+[[bin]]
+name = "port_open_rescue"
+path = "src/bin/port_open_rescue.rs"
+
+[[bin]]
+name = "verify"
+path = "src/bin/verify.rs"
