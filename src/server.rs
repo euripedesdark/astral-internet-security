@@ -61,7 +61,8 @@ impl FirewallServer {
         let serve_dir = ServeDir::new(&static_dir).fallback(ServeFile::new(index_file));
 
         Router::new()
-            .route("/", get(|| async { axum::response::Redirect::temporary("/app/") }))
+            .route("/", get(|| async { axum::response::Redirect::temporary("/firewall/") }))
+            .nest_service("/firewall", serve_dir.clone())
             .nest_service("/app", serve_dir)
             // 0. Health checks
             .route(
