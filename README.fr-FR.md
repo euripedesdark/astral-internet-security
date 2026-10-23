@@ -52,3 +52,16 @@ Interface SPA React 18 avec prise en charge dynamique de 4 langues :
 ## Licence
 
 Copyright (C) Astral Software. Tous droits réservés. Licence Commerciale Propriétaire.
+
+## 🔐 Politique d'Accès Unifié et Authentification
+
+**Astral Internet Security** met en œuvre la politique unifiée d'authentification et de gouvernance de l'écosystème Astral :
+
+1. **OAuth2 / Samba Active Directory / Postgres** :
+   - Authentification fédérée orchestrée via `astral-auth-service` (`http://127.0.0.1:8181`). Les opérateurs du domaine Samba AD dotés de privilèges réseau/pare-feu sont autorisés par mappage LDAP.
+2. **Via `auth-service` (SSO)** :
+   - Validation directe des en-têtes `Authorization: Bearer <token>` et des cookies de session (`sso_token` et `astral_token`) signés avec le secret partagé (`AUTH_TOKEN_SECRET` dans `/etc/auth-service/auth.env`).
+3. **Utilisateur Local Linux (`root` ou `sudo`)** :
+   - Authentification du système d'exploitation validant si l'utilisateur est `root` ou membre des groupes `wheel` ou `sudo`.
+4. **Superutilisateur PostgreSQL** :
+   - Accès administratif pour tout compte PostgreSQL avec `rolsuper = true` (ex. `postgres`).
