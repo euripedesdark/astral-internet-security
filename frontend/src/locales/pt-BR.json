@@ -375,7 +375,8 @@
       "zero_trust": "4. Cloudflare Zero Trust (ZTNA)",
       "vpn": "5. Túnel OpenVPN & PKI",
       "antivirus": "6. Antivírus ClamAV & ICAP",
-      "compliance": "7. Governança ISO 27001 & Auditoria"
+      "compliance": "7. Governança ISO 27001 & Auditoria",
+      "wifi_router": "8. Roteador Wi-Fi (Ponto de Acesso AP)"
     },
     "pending": {
       "bannerText": "Existem alterações de configuração não publicadas em produção.",

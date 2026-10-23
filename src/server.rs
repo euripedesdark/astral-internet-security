@@ -7,8 +7,9 @@ use crate::controller::{
 use crate::domain::{
     AliasObject, AlgConfig, AntiSpoofingConfig, AntivirusBypass, ClientSpecificOverride,
     DecompressionLimits, DnsSinkholeConfig, DohConfig, EdgeJwtValidator, EgressFilterConfig,
-    FirewallRule, GeoIpPolicy, MultiWanConfig, NatRule, NetworkZone, OpenVpnConfig, PbrRule,
-    QosConfig, RateLimitConfig, SyslogRemoteConfig, WanLink, ZtnaAppPublish,
+    FirewallRule, GeoIpPolicy, MultiWanConfig, MultiWanSetupRequest, NatRule, NetworkZone,
+    OpenVpnConfig, PbrRule, QosConfig, RateLimitConfig, SyslogRemoteConfig, WanLink,
+    WifiHotspotConfig, ZtnaAppPublish,
 };
 use axum::{
     extract::{Path, State},
@@ -279,6 +280,34 @@ impl FirewallServer {
                     .post(|State(st): State<Arc<AppState>>, Json(cfg): Json<EgressFilterConfig>| async move {
                         st.gateway.handle_set_egress(cfg)
                     }),
+            )
+            .route(
+                "/api/v1/gateway/interfaces",
+                get(|State(st): State<Arc<AppState>>| async move { st.gateway.handle_get_interfaces() }),
+            )
+            .route(
+                "/api/v1/gateway/setup-wans",
+                post(
+                    |State(st): State<Arc<AppState>>, Json(req): Json<MultiWanSetupRequest>| async move {
+                        st.gateway.handle_setup_multi_wan(req)
+                    },
+                ),
+            )
+            .route(
+                "/api/v1/gateway/wifi/status",
+                get(|State(st): State<Arc<AppState>>| async move { st.gateway.handle_get_wifi_status() }),
+            )
+            .route(
+                "/api/v1/gateway/wifi/hotspot",
+                post(
+                    |State(st): State<Arc<AppState>>, Json(cfg): Json<WifiHotspotConfig>| async move {
+                        st.gateway.handle_start_wifi_hotspot(cfg)
+                    },
+                ),
+            )
+            .route(
+                "/api/v1/gateway/wifi/stop",
+                post(|State(st): State<Arc<AppState>>| async move { st.gateway.handle_stop_wifi_hotspot() }),
             )
             // =========================================================
             // 4. ZERO TRUST ENGINE (Cloudflare Tunnel, ZTNA, JWT, DoH)

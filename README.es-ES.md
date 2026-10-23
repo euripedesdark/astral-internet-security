@@ -66,3 +66,7 @@ Copyright (C) Astral Software. Todos los derechos reservados. Licencia Comercial
    - Autenticación del sistema operativo validando si el usuario es `root` o miembro de los grupos `wheel` o `sudo`.
 4. **Superusuario PostgreSQL**:
    - Acceso administrativo para cualquier cuenta PostgreSQL con `rolsuper = true` (ej: `postgres`).
+
+### 🌐 Multi-WAN (1 a 10 Enlaces) y Enrutador Wi-Fi (AP)
+- **Configuración Declarativa Multi-WAN**: Selección de 1 a 10 enlaces WAN con opción de mantener configuraciones o reconfigurar, reaplicando Masquerade sin borrar reglas de puertos.
+- **Enrutador Wi-Fi Hotspot**: Detección automática de interfaces inalámbricas y modo AP para creación de SSID, cifrado WPA2/WPA3, DHCP integrado y enrutamiento de borde.

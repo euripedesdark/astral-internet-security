@@ -288,3 +288,57 @@ export interface BackupStatus {
   lastBackup: string;
   targetStorage: string;
 }
+
+export interface NetworkInterfaceInfo {
+  name: string;
+  ip?: string;
+  netmask?: string;
+  mac?: string;
+  isUp: boolean;
+  isWireless: boolean;
+  hasIp: boolean;
+  linkType: string;
+  suggestedRole: string;
+}
+
+export interface WanSetupLink {
+  id: string;
+  name: string;
+  interface: string;
+  action: 'keep' | 'reconfigure';
+  ipMode?: 'dhcp' | 'static';
+  ip?: string;
+  netmask?: string;
+  gateway?: string;
+  isPrimary: boolean;
+  weight: number;
+}
+
+export interface MultiWanSetupRequest {
+  wanCount: number;
+  links: WanSetupLink[];
+  mode: string;
+}
+
+export interface WifiRouterStatus {
+  hasWifi: boolean;
+  interfaceName?: string;
+  isActive: boolean;
+  ssid?: string;
+  channel?: number;
+  band?: string;
+  ipGateway?: string;
+  clientsCount: number;
+  modeSupported: string[];
+}
+
+export interface WifiHotspotConfig {
+  interfaceName: string;
+  ssid: string;
+  password?: string;
+  band: string;
+  channel?: number;
+  ipGateway?: string;
+  enableNatRouting: boolean;
+  wanInterface?: string;
+}

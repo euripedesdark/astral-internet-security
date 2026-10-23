@@ -71,3 +71,7 @@ Copyright (C) Astral Software. All rights reserved. Commercial Proprietary Licen
    - Operating system authentication confirming the operator is `root` or a member of the `wheel` or `sudo` groups.
 4. **PostgreSQL Superuser**:
    - Administrative access for any local PostgreSQL account with `rolsuper = true` (e.g., `postgres`).
+
+### 🌐 Multi-WAN (1 to 10 Links) & Wi-Fi Router (AP)
+- **Declarative Multi-WAN Configuration**: Selection of 1 to 10 WAN links with options to keep existing configs or reconfigure, reapplying Masquerade without flushing port rules.
+- **Wi-Fi Router Hotspot**: Automatic wireless interface detection and AP mode for SSID creation, WPA2/WPA3 encryption, integrated DHCP, and edge routing.

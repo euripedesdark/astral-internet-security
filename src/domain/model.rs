@@ -429,3 +429,71 @@ pub struct BackupStatus {
     pub last_backup: String,
     pub target_storage: String,
 }
+
+// ==============================================================================
+// MULTI-WAN (1-10 INTERFACES) & ROTEADOR WI-FI HOTSPOT
+// ==============================================================================
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkInterfaceInfo {
+    pub name: String,
+    pub ip: Option<String>,
+    pub netmask: Option<String>,
+    pub mac: Option<String>,
+    pub is_up: bool,
+    pub is_wireless: bool,
+    pub has_ip: bool,
+    pub link_type: String,
+    pub suggested_role: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WanSetupLink {
+    pub id: String,
+    pub name: String,
+    pub interface: String,
+    pub action: String, // 'keep' ou 'reconfigure'
+    pub ip_mode: Option<String>, // 'dhcp' ou 'static'
+    pub ip: Option<String>,
+    pub netmask: Option<String>,
+    pub gateway: Option<String>,
+    pub is_primary: bool,
+    pub weight: u32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MultiWanSetupRequest {
+    pub wan_count: usize, // 1 a 10
+    pub links: Vec<WanSetupLink>,
+    pub mode: String, // 'Failover', 'LoadBalanceWeighted', 'RoundRobin'
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WifiRouterStatus {
+    pub has_wifi: bool,
+    pub interface_name: Option<String>,
+    pub is_active: bool,
+    pub ssid: Option<String>,
+    pub channel: Option<u32>,
+    pub band: Option<String>,
+    pub ip_gateway: Option<String>,
+    pub clients_count: u32,
+    pub mode_supported: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WifiHotspotConfig {
+    pub interface_name: String,
+    pub ssid: String,
+    pub password: Option<String>,
+    pub band: String, // 'bg' (2.4GHz) ou 'a' (5GHz)
+    pub channel: Option<u32>,
+    pub ip_gateway: Option<String>,
+    pub enable_nat_routing: bool,
+    pub wan_interface: Option<String>,
+}
