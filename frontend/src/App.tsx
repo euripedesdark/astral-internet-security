@@ -12,6 +12,7 @@ import { OverviewModule } from './modules/overview/OverviewModule';
 import { FirewallModule } from './modules/firewall/FirewallModule';
 import { NatModule } from './modules/nat/NatModule';
 import { GatewayModule } from './modules/gateway/GatewayModule';
+import { WifiRouterModule } from './modules/wifi/WifiRouterModule';
 import { ZeroTrustModule } from './modules/zero_trust/ZeroTrustModule';
 import { VpnModule } from './modules/vpn/VpnModule';
 import { AntivirusModule } from './modules/antivirus/AntivirusModule';
@@ -23,6 +24,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeModule, setActiveModule] = useState('overview');
+  const [hasWifi, setHasWifi] = useState(false);
 
   // ISO 27001 Transversal States
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
@@ -42,6 +44,15 @@ function App() {
     SecurityApi.getNtpStatus()
       .then(setNtpStatus)
       .catch((e) => console.error('NTP load error:', e));
+
+    // Detectar presença de placa Wi-Fi no hardware do firewall
+    SecurityApi.getWifiStatus()
+      .then((w) => {
+        if (w.hasWifi) {
+          setHasWifi(true);
+        }
+      })
+      .catch((e) => console.error('WiFi check error:', e));
   }, []);
 
   if (loading) {
@@ -62,6 +73,15 @@ function App() {
     { id: 'firewall', label: t('ais.nav.firewall'), icon: 'pi pi-shield' },
     { id: 'nat', label: t('ais.nav.nat'), icon: 'pi pi-arrow-right-arrow-left' },
     { id: 'gateway', label: t('ais.nav.gateway'), icon: 'pi pi-sitemap' },
+    ...(hasWifi
+      ? [
+          {
+            id: 'wifi',
+            label: t('ais.nav.wifi_router', 'Roteador Wi-Fi (AP)'),
+            icon: 'pi pi-wifi',
+          },
+        ]
+      : []),
     { id: 'zero_trust', label: t('ais.nav.zero_trust'), icon: 'pi pi-cloud' },
     { id: 'vpn', label: t('ais.nav.vpn'), icon: 'pi pi-lock' },
     { id: 'antivirus', label: t('ais.nav.antivirus'), icon: 'pi pi-shield' },
@@ -163,6 +183,9 @@ function App() {
           )}
           {activeModule === 'gateway' && (
             <GatewayModule onStateChangeNotify={() => setHasPendingChanges(true)} />
+          )}
+          {activeModule === 'wifi' && (
+            <WifiRouterModule onStateChangeNotify={() => setHasPendingChanges(true)} />
           )}
           {activeModule === 'zero_trust' && (
             <ZeroTrustModule onStateChangeNotify={() => setHasPendingChanges(true)} />

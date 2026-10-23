@@ -58,3 +58,7 @@ React 18 SPA console with full internationalization across 4 languages:
 ## License
 
 Copyright (C) Astral Software. All rights reserved. Commercial Proprietary License.
+
+### 🌐 Multi-WAN (1 to 10 Links) & Wi-Fi Router (AP)
+- **Declarative Multi-WAN Configuration**: Selection of 1 to 10 WAN links with options to keep existing configs or reconfigure, reapplying Masquerade without flushing port rules.
+- **Wi-Fi Router Hotspot**: Automatic wireless interface detection and AP mode for SSID creation, WPA2/WPA3 encryption, integrated DHCP, and edge routing.

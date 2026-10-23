@@ -111,3 +111,30 @@ Validação executada diretamente no host (`192.168.2.10`):
 | `astral-dbm.service` | `8092` | `active (running)` | **HTTP 200 OK** | Rust 1.99 / InterBase Engine |
 | `astral-saas-erp.service` | `8080` | `active (running)` | **HTTP 200 OK** | Java 21 / Spring Boot Tomcat |
 | `auth-service.service` | `8181` | `active (running)` | **HTTP 200 OK** | Rust 1.99 / OAuth2 IdP Central |
+
+---
+
+## 5. Módulo Multi-WAN (1 a 10 Interfaces) & Roteador Wi-Fi (AP)
+
+Implementação realizada no **Astral Internet Security** (`astral-internet-security`):
+
+### 5.1. Seleção e Ciclo de Vida Multi-WAN (1 a 10 Links)
+1. **Inspeção de Interfaces do Kernel**: O backend consulta a estrutura do host em tempo real (`ip -j addr show` e `/sys/class/net`), mapeando:
+   - `enp0s20u2` (IP `192.168.2.10` / 24 - Link WAN Primário).
+   - `enp3s0f1` (IP `192.168.1.1` / 24 - Rede LAN Corporativa).
+   - `wlp2s0` (Placa Wireless compatível com Modo AP).
+   - `tailscale0` (Túnel VPN).
+2. **Seletor de Quantidade (1 a 10 WANs)**: O administrador escolhe entre 1 e 10 interfaces de borda para Failover ou Balanceamento Ponderado.
+3. **Preservação ou Reconfiguração Declarativa**:
+   - Para interfaces com IP já configurado (ex: `enp0s20u2`), é disponibilizada a opção **Manter Configuração Existente** ou **Reconfigurar WAN**.
+4. **Política Estrita de Masquerade sem Tocar nas Portas**:
+   - Ao reconfigurar a WAN, o motor remove **exclusivamente a regra de MASQUERADE** da tabela `nat` POSTROUTING para as interfaces afetadas e aplica a nova regra (`iptables -t nat -A POSTROUTING -o <wan> -j MASQUERADE`).
+   - Todas as regras da tabela `filter` (portas abertas no INPUT, proteções DoS) e da tabela `nat` (DNAT Port Forwarding) são mantidas 100% intactas.
+
+### 5.2. Roteador Wi-Fi (Ponto de Acesso / Hotspot)
+1. **Detecção Dinâmica do Menu**: Se for detectada placa sem fio com suporte ao modo AP (como a `wlp2s0`), o menu lateral exibe dinamicamente a opção **"8. Roteador Wi-Fi (AP)"**, além de uma aba integrada no Gateway.
+2. **Gerenciamento do Ponto de Acesso**:
+   - Criação e ativação de SSID customizado com criptografia WPA2-PSK / WPA3.
+   - Seleção de frequência (2.4 GHz [bg] / 5 GHz [a]) e canal de operação.
+   - Atribuição de sub-rede isolada para clientes Wi-Fi (`10.42.0.1/24`) com serviço DHCP embutido (`dnsmasq`).
+   - Roteamento e encaminhamento NAT automatizado com a interface WAN selecionada.

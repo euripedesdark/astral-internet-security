@@ -71,3 +71,7 @@ O **Astral Internet Security** implementa a política unificada de autenticaçã
    - Autenticação do sistema operacional validando se o usuário é `root` ou membro dos grupos `wheel` ou `sudo`.
 4. **Superusuário PostgreSQL**:
    - Acesso administrativo para qualquer conta PostgreSQL com `rolsuper = true` (ex: `postgres`).
+
+### 🌐 Multi-WAN (1 a 10 Links) & Roteador Wi-Fi (AP)
+- **Configuração Declarativa Multi-WAN**: Seleção de 1 a 10 links WAN com opção de manter configurações ou reconfigurar, aplicando Masquerade sem limpar regras de portas.
+- **Roteador Wi-Fi Hotspot**: Detecção automática de placas wireless e modo AP para criação de SSID, criptografia WPA2/WPA3, DHCP integrado e roteamento de borda.

@@ -1,5 +1,6 @@
 use crate::domain::{
-    DnsSinkholeConfig, EgressFilterConfig, MultiWanConfig, PbrRule, QosConfig, WanLink,
+    DnsSinkholeConfig, EgressFilterConfig, MultiWanConfig, MultiWanSetupRequest, PbrRule,
+    QosConfig, WanLink, WifiHotspotConfig,
 };
 use crate::service::GatewayEngine;
 use axum::{
@@ -88,6 +89,37 @@ impl GatewayController {
     pub fn handle_set_egress(&self, config: EgressFilterConfig) -> Response {
         match self.engine.set_egress_filter(config) {
             Ok(res) => (StatusCode::OK, Json(res)).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    // NOVOS ENDPOINTS: Interfaces, Multi-WAN Setup e Wi-Fi Hotspot
+
+    pub fn handle_get_interfaces(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_system_interfaces()))
+    }
+
+    pub fn handle_setup_multi_wan(&self, req: MultiWanSetupRequest) -> Response {
+        match self.engine.apply_multi_wan_setup(req) {
+            Ok(links) => (StatusCode::OK, Json(json!({"success": true, "links": links}))).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_get_wifi_status(&self) -> Json<serde_json::Value> {
+        Json(json!(self.engine.get_wifi_status()))
+    }
+
+    pub fn handle_start_wifi_hotspot(&self, config: WifiHotspotConfig) -> Response {
+        match self.engine.start_wifi_hotspot(config) {
+            Ok(status) => (StatusCode::OK, Json(json!({"success": true, "wifi": status}))).into_response(),
+            Err(e) => e.to_json_response().into_response(),
+        }
+    }
+
+    pub fn handle_stop_wifi_hotspot(&self) -> Response {
+        match self.engine.stop_wifi_hotspot() {
+            Ok(status) => (StatusCode::OK, Json(json!({"success": true, "wifi": status}))).into_response(),
             Err(e) => e.to_json_response().into_response(),
         }
     }

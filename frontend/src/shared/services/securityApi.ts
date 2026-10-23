@@ -44,6 +44,13 @@ export const SecurityApi = {
   getEgress: () => api<T.EgressFilterConfig>('/api/v1/gateway/egress-filter'),
   setEgress: (cfg: T.EgressFilterConfig) => api<T.EgressFilterConfig>('/api/v1/gateway/egress-filter', { method: 'POST', body: JSON.stringify(cfg) }),
 
+  // Multi-WAN (1-10 Links) & Roteador Wi-Fi
+  getInterfaces: () => api<T.NetworkInterfaceInfo[]>('/api/v1/gateway/interfaces'),
+  setupMultiWan: (req: T.MultiWanSetupRequest) => api<{ success: boolean; links: T.WanLink[] }>('/api/v1/gateway/setup-wans', { method: 'POST', body: JSON.stringify(req) }),
+  getWifiStatus: () => api<T.WifiRouterStatus>('/api/v1/gateway/wifi/status'),
+  startWifiHotspot: (cfg: T.WifiHotspotConfig) => api<{ success: boolean; wifi: T.WifiRouterStatus }>('/api/v1/gateway/wifi/hotspot', { method: 'POST', body: JSON.stringify(cfg) }),
+  stopWifiHotspot: () => api<{ success: boolean; wifi: T.WifiRouterStatus }>('/api/v1/gateway/wifi/stop', { method: 'POST' }),
+
   // 4. Zero Trust
   getTunnelStatus: () => api<T.CloudflareTunnelConfig>('/api/v1/zero-trust/tunnel'),
   getZtnaApps: () => api<T.ZtnaAppPublish[]>('/api/v1/zero-trust/apps'),
