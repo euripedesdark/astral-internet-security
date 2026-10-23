@@ -56,3 +56,16 @@ Toda a interface de operações NOC/SOC foi desenvolvida em **React 18 + PrimeRe
 ## 🔒 Licença / License
 
 Copyright (C) Astral Software / Astral Corporation. Todos os direitos reservados. Licença Proprietária Comercial.
+
+## 🔐 Política Unificada de Acesso e Autenticação
+
+O **Astral Internet Security** implementa a política unificada de autenticação e governança do ecossistema Astral:
+
+1. **OAuth2 / Samba Active Directory / Postgres**:
+   - Autenticação federada orquestrada via `astral-auth-service` (`http://127.0.0.1:8181`). Operadores do domínio Samba AD com privilégios de rede/firewall são autorizados com mapeamento LDAP.
+2. **Via `auth-service` (SSO)**:
+   - Validação direta de cabeçalhos `Authorization: Bearer <token>` e cookies de sessão (`sso_token` e `astral_token`) assinados com o segredo compartilhado (`AUTH_TOKEN_SECRET` em `/etc/auth-service/auth.env`).
+3. **Usuário Local Linux (`root` ou `sudo`)**:
+   - Autenticação do sistema operacional validando se o usuário é `root` ou membro dos grupos `wheel` ou `sudo`.
+4. **Superusuário PostgreSQL**:
+   - Acesso administrativo para qualquer conta PostgreSQL com `rolsuper = true` (ex: `postgres`).
