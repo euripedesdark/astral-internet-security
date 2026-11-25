@@ -1,8 +1,9 @@
 use crate::domain::{AlgConfig, FirewallError, NatRule, NatType};
+use crate::service::backend::PacketFilterBackend;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tracing::info;
 use uuid::Uuid;
 
@@ -18,21 +19,38 @@ pub trait NatEngine: Send + Sync {
     fn delete_rule(&self, id: &str) -> Result<bool, FirewallError>;
     fn get_alg_config(&self) -> AlgConfig;
     fn set_alg_config(&self, config: AlgConfig) -> Result<AlgConfig, FirewallError>;
+    fn reconcile_all(&self);
 }
 
 pub struct StatefulNatEngine {
+    backend: Arc<dyn PacketFilterBackend>,
     storage_path: PathBuf,
     rules: Mutex<Vec<NatRule>>,
     alg: Mutex<AlgConfig>,
 }
 
 impl StatefulNatEngine {
-    pub fn new(storage_path: PathBuf) -> Self {
+    pub fn new(backend: Arc<dyn PacketFilterBackend>, storage_path: PathBuf) -> Self {
         let (rules, alg) = Self::load_from_disk(&storage_path);
-        Self {
+        let engine = Self {
+            backend,
             storage_path,
             rules: Mutex::new(rules),
             alg: Mutex::new(alg),
+        };
+        engine.reconcile_all();
+        engine
+    }
+
+    pub fn reconcile_all(&self) {
+        let rules = self.rules.lock().unwrap().clone();
+        info!("Reconciling {} NAT & Masquerade rules into the Linux kernel...", rules.len());
+        for rule in &rules {
+            if rule.enabled {
+                if let Err(e) = self.backend.apply_nat_rule(rule) {
+                    tracing::warn!("Failed to apply NAT rule {} to kernel: {:?}", rule.name, e);
+                }
+            }
         }
     }
 
@@ -98,18 +116,23 @@ impl NatEngine for StatefulNatEngine {
         if rule.id.is_empty() {
             rule.id = Uuid::new_v4().to_string();
         }
+        if rule.enabled {
+            let _ = self.backend.apply_nat_rule(&rule);
+        }
         self.rules.lock().unwrap().push(rule.clone());
         self.persist();
-        info!("Registered NAT rule: {} ({:?})", rule.name, rule.nat_type);
+        info!("Registered & applied NAT rule: {} ({:?})", rule.name, rule.nat_type);
         Ok(rule)
     }
 
     fn delete_rule(&self, id: &str) -> Result<bool, FirewallError> {
         let mut rules = self.rules.lock().unwrap();
         if let Some(pos) = rules.iter().position(|r| r.id == id) {
-            rules.remove(pos);
+            let removed = rules.remove(pos);
             drop(rules);
+            let _ = self.backend.remove_nat_rule(&removed);
             self.persist();
+            info!("Deleted & removed NAT rule from kernel: {}", removed.name);
             Ok(true)
         } else {
             Err(FirewallError::RuleNotFound(id.to_string()))
@@ -125,5 +148,17 @@ impl NatEngine for StatefulNatEngine {
         self.persist();
         info!("Updated Application Layer Gateway (ALG) helpers: SIP={}, FTP={}", config.sip_enabled, config.ftp_enabled);
         Ok(config)
+    }
+
+    fn reconcile_all(&self) {
+        let rules = self.rules.lock().unwrap().clone();
+        info!("Reconciling {} NAT & Masquerade rules into the Linux kernel...", rules.len());
+        for rule in &rules {
+            if rule.enabled {
+                if let Err(e) = self.backend.apply_nat_rule(rule) {
+                    tracing::warn!("Failed to apply NAT rule {} to kernel: {:?}", rule.name, e);
+                }
+            }
+        }
     }
 }

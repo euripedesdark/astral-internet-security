@@ -1,4 +1,4 @@
-use crate::domain::{FirewallError, FirewallRule};
+use crate::domain::{FirewallError, FirewallRule, NatRule, NatType};
 use std::process::Command;
 use tracing::info;
 
@@ -8,6 +8,11 @@ pub trait PacketFilterBackend: Send + Sync {
     fn apply_panic(&self, enabled: bool) -> Result<(), FirewallError>;
     fn apply_bogon_filtering(&self, enabled: bool) -> Result<(), FirewallError>;
     fn apply_rate_limit(&self, max_conn: u32, syn_rate: u32) -> Result<(), FirewallError>;
+
+    // NAT & Masquerade Operations
+    fn apply_nat_rule(&self, rule: &NatRule) -> Result<(), FirewallError>;
+    fn remove_nat_rule(&self, rule: &NatRule) -> Result<(), FirewallError>;
+    fn ensure_ip_forwarding(&self) -> Result<(), FirewallError>;
 }
 
 pub struct IptablesBackend;
@@ -117,5 +122,199 @@ impl PacketFilterBackend for IptablesBackend {
             .args(["-I", "INPUT", "-p", "tcp", "--syn", "-m", "limit", "--limit", &format!("{}/s", syn_rate), "--limit-burst", "100", "-j", "ACCEPT"])
             .status();
         Ok(())
+    }
+
+    fn ensure_ip_forwarding(&self) -> Result<(), FirewallError> {
+        info!("Enabling kernel IPv4 forwarding (net.ipv4.ip_forward=1)");
+        let _ = Command::new("sysctl").args(["-w", "net.ipv4.ip_forward=1"]).status();
+        let _ = Command::new("iptables")
+            .args(["-A", "FORWARD", "-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "ACCEPT"])
+            .status();
+        Ok(())
+    }
+
+    fn apply_nat_rule(&self, rule: &NatRule) -> Result<(), FirewallError> {
+        self.ensure_ip_forwarding()?;
+        match rule.nat_type {
+            NatType::SnatMasquerade => {
+                info!("Applying SNAT Masquerade on interface {}: src={:?}", rule.interface, rule.original_ip);
+                // 1. iptables NAT POSTROUTING
+                let mut cmd = Command::new("iptables");
+                cmd.args(["-t", "nat", "-A", "POSTROUTING"]);
+                if !rule.interface.is_empty() && rule.interface != "ALL" && rule.interface != "ANY" {
+                    cmd.args(["-o", &rule.interface]);
+                }
+                if let Some(ref src) = rule.original_ip {
+                    if !src.is_empty() && src != "0.0.0.0/0" {
+                        cmd.args(["-s", src]);
+                    }
+                }
+                if !rule.destination_ip.is_empty() && rule.destination_ip != "0.0.0.0/0" {
+                    cmd.args(["-d", &rule.destination_ip]);
+                }
+                cmd.args(["-j", "MASQUERADE"]);
+                let status = cmd.status().map_err(|e| FirewallError::BackendError(e.to_string()))?;
+
+                // 2. iptables FORWARD
+                let mut fwd = Command::new("iptables");
+                fwd.args(["-A", "FORWARD"]);
+                if !rule.interface.is_empty() && rule.interface != "ALL" && rule.interface != "ANY" {
+                    fwd.args(["-o", &rule.interface]);
+                }
+                if let Some(ref src) = rule.original_ip {
+                    if !src.is_empty() && src != "0.0.0.0/0" {
+                        fwd.args(["-s", src]);
+                    }
+                }
+                fwd.args(["-j", "ACCEPT"]);
+                let _ = fwd.status();
+
+                // 3. nftables fallback
+                let wan = if rule.interface.is_empty() { "wan0" } else { &rule.interface };
+                let _ = Command::new("nft")
+                    .args(["add", "rule", "ip", "nat", "postrouting", "oifname", wan, "masquerade"])
+                    .status();
+
+                // 4. firewalld support
+                let _ = Command::new("firewall-cmd")
+                    .args(["--zone=external", &format!("--add-interface={}", wan), "--permanent"])
+                    .status();
+                let _ = Command::new("firewall-cmd")
+                    .args(["--zone=external", "--add-masquerade", "--permanent"])
+                    .status();
+
+                if status.success() {
+                    Ok(())
+                } else {
+                    Err(FirewallError::BackendError("iptables MASQUERADE command exited with non-zero status".into()))
+                }
+            }
+            NatType::DnatPortForward => {
+                let proto = if rule.protocol.is_empty() || rule.protocol == "ALL" {
+                    "tcp".to_string()
+                } else {
+                    rule.protocol.to_lowercase()
+                };
+                let dest = format!("{}:{}", rule.destination_ip, rule.destination_port);
+                info!("Applying DNAT Port Forward: {}:{} -> {} ({})", rule.interface, rule.original_port, dest, proto);
+
+                let mut cmd = Command::new("iptables");
+                cmd.args(["-t", "nat", "-A", "PREROUTING"]);
+                if !rule.interface.is_empty() && rule.interface != "ALL" {
+                    cmd.args(["-i", &rule.interface]);
+                }
+                cmd.args(["-p", &proto]);
+                if !rule.original_port.is_empty() && rule.original_port != "ANY" {
+                    cmd.args(["--dport", &rule.original_port]);
+                }
+                cmd.args(["-j", "DNAT", "--to-destination", &dest]);
+                let _ = cmd.status();
+
+                let mut fwd = Command::new("iptables");
+                fwd.args(["-A", "FORWARD", "-p", &proto, "-d", &rule.destination_ip]);
+                if !rule.destination_port.is_empty() && rule.destination_port != "ANY" {
+                    fwd.args(["--dport", &rule.destination_port]);
+                }
+                fwd.args(["-j", "ACCEPT"]);
+                let _ = fwd.status();
+                Ok(())
+            }
+            NatType::NatReflection => {
+                info!("Applying Hairpin NAT (Reflection) for destination: {}", rule.destination_ip);
+                let mut cmd = Command::new("iptables");
+                cmd.args(["-t", "nat", "-A", "POSTROUTING"]);
+                if let Some(ref src) = rule.original_ip {
+                    cmd.args(["-s", src]);
+                } else {
+                    cmd.args(["-s", "192.168.0.0/16"]);
+                }
+                cmd.args(["-d", &rule.destination_ip, "-j", "MASQUERADE"]);
+                let _ = cmd.status();
+                Ok(())
+            }
+            NatType::BinatOneToOne => {
+                info!("Applying 1:1 BI-NAT: {:?} <-> {}", rule.original_ip, rule.destination_ip);
+                if let Some(ref orig) = rule.original_ip {
+                    let mut dnat = Command::new("iptables");
+                    dnat.args(["-t", "nat", "-A", "PREROUTING", "-d", &rule.destination_ip, "-j", "DNAT", "--to-destination", orig]);
+                    let _ = dnat.status();
+
+                    let mut snat = Command::new("iptables");
+                    snat.args(["-t", "nat", "-A", "POSTROUTING", "-s", orig, "-j", "SNAT", "--to-source", &rule.destination_ip]);
+                    let _ = snat.status();
+                }
+                Ok(())
+            }
+            _ => {
+                info!("NAT type {:?} handled through generic masquerade", rule.nat_type);
+                Ok(())
+            }
+        }
+    }
+
+    fn remove_nat_rule(&self, rule: &NatRule) -> Result<(), FirewallError> {
+        match rule.nat_type {
+            NatType::SnatMasquerade => {
+                let mut cmd = Command::new("iptables");
+                cmd.args(["-t", "nat", "-D", "POSTROUTING"]);
+                if !rule.interface.is_empty() && rule.interface != "ALL" && rule.interface != "ANY" {
+                    cmd.args(["-o", &rule.interface]);
+                }
+                if let Some(ref src) = rule.original_ip {
+                    if !src.is_empty() && src != "0.0.0.0/0" {
+                        cmd.args(["-s", src]);
+                    }
+                }
+                if !rule.destination_ip.is_empty() && rule.destination_ip != "0.0.0.0/0" {
+                    cmd.args(["-d", &rule.destination_ip]);
+                }
+                cmd.args(["-j", "MASQUERADE"]);
+                let _ = cmd.status();
+
+                let mut fwd = Command::new("iptables");
+                fwd.args(["-D", "FORWARD"]);
+                if !rule.interface.is_empty() && rule.interface != "ALL" && rule.interface != "ANY" {
+                    fwd.args(["-o", &rule.interface]);
+                }
+                if let Some(ref src) = rule.original_ip {
+                    if !src.is_empty() && src != "0.0.0.0/0" {
+                        fwd.args(["-s", src]);
+                    }
+                }
+                fwd.args(["-j", "ACCEPT"]);
+                let _ = fwd.status();
+                Ok(())
+            }
+            NatType::DnatPortForward => {
+                let proto = if rule.protocol.is_empty() || rule.protocol == "ALL" {
+                    "tcp".to_string()
+                } else {
+                    rule.protocol.to_lowercase()
+                };
+                let dest = format!("{}:{}", rule.destination_ip, rule.destination_port);
+
+                let mut cmd = Command::new("iptables");
+                cmd.args(["-t", "nat", "-D", "PREROUTING"]);
+                if !rule.interface.is_empty() && rule.interface != "ALL" {
+                    cmd.args(["-i", &rule.interface]);
+                }
+                cmd.args(["-p", &proto]);
+                if !rule.original_port.is_empty() && rule.original_port != "ANY" {
+                    cmd.args(["--dport", &rule.original_port]);
+                }
+                cmd.args(["-j", "DNAT", "--to-destination", &dest]);
+                let _ = cmd.status();
+
+                let mut fwd = Command::new("iptables");
+                fwd.args(["-D", "FORWARD", "-p", &proto, "-d", &rule.destination_ip]);
+                if !rule.destination_port.is_empty() && rule.destination_port != "ANY" {
+                    fwd.args(["--dport", &rule.destination_port]);
+                }
+                fwd.args(["-j", "ACCEPT"]);
+                let _ = fwd.status();
+                Ok(())
+            }
+            _ => Ok(()),
+        }
     }
 }

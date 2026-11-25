@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let firewall_controller = Arc::new(FirewallController::new(firewall_engine));
 
     // 2. Motor de NAT (SNAT Masquerade, DNAT Port Forward, 1:1, Hairpinning, NPTv6, ALG)
-    let nat_engine = Arc::new(StatefulNatEngine::new(config.nat_path()));
+    let nat_engine = Arc::new(StatefulNatEngine::new(backend.clone(), config.nat_path()));
     let nat_controller = Arc::new(NatController::new(nat_engine));
 
     // 3. Gateway de Acesso (Multi-WAN Failover/LB, PBR, DNS Sinkhole RPZ, QoS Cake, Egress)
