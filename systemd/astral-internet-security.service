@@ -1,0 +1,18 @@
+[Unit]
+Description=Astral Internet Security - Firewall, NAT & Threat Defense Engine
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/astral-internet-security
+ExecStart=/opt/astral-internet-security/astral-internet-security
+Restart=always
+RestartSec=5
+Environment=ASTRAL_FIREWALL_PORT=8084
+Environment=ASTRAL_STATIC_DIR=/opt/astral-internet-security/static/firewall
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

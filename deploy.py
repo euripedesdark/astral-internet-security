@@ -102,10 +102,45 @@ def main():
 
     log(f"Binário e assets instalados em {GLOBAL_DIR} com sucesso.", GREEN)
 
-    # 5. Reinicialização do Serviço no Systemd
+    # 5. Configuração e Reinicialização do Serviço no Systemd
+    log(f"Configurando serviço systemd '{SERVICE_NAME}'...", BLUE)
+    systemd_path = f"/etc/systemd/system/{SERVICE_NAME}.service"
+    service_content = f"""[Unit]
+Description=Astral Internet Security - Firewall, NAT & Threat Defense Engine
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory={GLOBAL_DIR}
+ExecStart={GLOBAL_DIR}/{SERVICE_NAME}
+Restart=always
+RestartSec=5
+Environment=ASTRAL_FIREWALL_PORT={PORT}
+Environment=ASTRAL_STATIC_DIR={TARGET_STATIC_DIR}
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+"""
+    tmp_srv = f"/tmp/{SERVICE_NAME}.service"
+    with open(tmp_srv, "w", encoding="utf-8") as f:
+        f.write(service_content)
+
+    run_sudo(f"mv {tmp_srv} {systemd_path} && chmod 644 {systemd_path}")
+    run_sudo("systemctl daemon-reload")
+    run_sudo(f"systemctl enable {SERVICE_NAME}")
+
     log(f"Reiniciando serviço systemd '{SERVICE_NAME}'...", YELLOW)
     run_sudo(f"systemctl restart {SERVICE_NAME}")
     time.sleep(2.0)
+
+    # 5.1 Liberação no Firewall
+    log(f"Liberando porta {PORT} no firewall...", BLUE)
+    run_sudo(f"iptables -I INPUT -p tcp --dport {PORT} -j ACCEPT")
+    run_sudo(f"firewall-cmd --add-port={PORT}/tcp --permanent >/dev/null 2>&1 || true")
+    run_sudo("firewall-cmd --reload >/dev/null 2>&1 || true")
 
     # 6. Verificação de Saúde
     status_proc = run_sudo(f"systemctl is-active {SERVICE_NAME}")
