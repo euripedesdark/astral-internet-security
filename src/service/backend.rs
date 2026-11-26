@@ -135,14 +135,27 @@ impl PacketFilterBackend for IptablesBackend {
 
     fn apply_nat_rule(&self, rule: &NatRule) -> Result<(), FirewallError> {
         self.ensure_ip_forwarding()?;
+        // Auto-detect real WAN interface if rule specifies template wan0 that does not exist
+        let mut target_iface = rule.interface.clone();
+        if target_iface == "wan0" && !std::path::Path::new("/sys/class/net/wan0").exists() {
+            if let Ok(output) = Command::new("ip").args(["route", "show", "default"]).output() {
+                let text = String::from_utf8_lossy(&output.stdout);
+                let parts: Vec<&str> = text.split_whitespace().collect();
+                if let Some(pos) = parts.iter().position(|&x| x == "dev") {
+                    if let Some(dev) = parts.get(pos + 1) {
+                        target_iface = dev.to_string();
+                    }
+                }
+            }
+        }
         match rule.nat_type {
             NatType::SnatMasquerade => {
-                info!("Applying SNAT Masquerade on interface {}: src={:?}", rule.interface, rule.original_ip);
+                info!("Applying SNAT Masquerade on interface {}: src={:?}", target_iface, rule.original_ip);
                 // 1. iptables NAT POSTROUTING
                 let mut cmd = Command::new("iptables");
                 cmd.args(["-t", "nat", "-A", "POSTROUTING"]);
-                if !rule.interface.is_empty() && rule.interface != "ALL" && rule.interface != "ANY" {
-                    cmd.args(["-o", &rule.interface]);
+                if !target_iface.is_empty() && target_iface != "ALL" && target_iface != "ANY" {
+                    cmd.args(["-o", &target_iface]);
                 }
                 if let Some(ref src) = rule.original_ip {
                     if !src.is_empty() && src != "0.0.0.0/0" {
@@ -158,8 +171,8 @@ impl PacketFilterBackend for IptablesBackend {
                 // 2. iptables FORWARD
                 let mut fwd = Command::new("iptables");
                 fwd.args(["-A", "FORWARD"]);
-                if !rule.interface.is_empty() && rule.interface != "ALL" && rule.interface != "ANY" {
-                    fwd.args(["-o", &rule.interface]);
+                if !target_iface.is_empty() && target_iface != "ALL" && target_iface != "ANY" {
+                    fwd.args(["-o", &target_iface]);
                 }
                 if let Some(ref src) = rule.original_ip {
                     if !src.is_empty() && src != "0.0.0.0/0" {

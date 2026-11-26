@@ -67,16 +67,28 @@ impl StatefulNatEngine {
             }
         }
 
+        let detected_wan = if let Ok(output) = std::process::Command::new("ip").args(["route", "show", "default"]).output() {
+            let text = String::from_utf8_lossy(&output.stdout);
+            let parts: Vec<&str> = text.split_whitespace().collect();
+            if let Some(pos) = parts.iter().position(|&x| x == "dev") {
+                parts.get(pos + 1).map(|s| s.to_string()).unwrap_or_else(|| "wan0".into())
+            } else {
+                "wan0".into()
+            }
+        } else {
+            "wan0".into()
+        };
+
         let default_rules = vec![
             NatRule {
-                id: "nat-masq-wan0".into(),
+                id: format!("nat-masq-{}", detected_wan),
                 name: "Default LAN Masquerade".into(),
                 nat_type: NatType::SnatMasquerade,
                 original_ip: Some("192.168.0.0/16".into()),
                 original_port: "ANY".into(),
                 destination_ip: "0.0.0.0/0".into(),
                 destination_port: "ANY".into(),
-                interface: "wan0".into(),
+                interface: detected_wan,
                 protocol: "ALL".into(),
                 enabled: true,
             },
