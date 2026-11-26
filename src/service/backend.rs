@@ -169,18 +169,9 @@ impl PacketFilterBackend for IptablesBackend {
                 fwd.args(["-j", "ACCEPT"]);
                 let _ = fwd.status();
 
-                // 3. nftables fallback
-                let wan = if rule.interface.is_empty() { "wan0" } else { &rule.interface };
-                let _ = Command::new("nft")
-                    .args(["add", "rule", "ip", "nat", "postrouting", "oifname", wan, "masquerade"])
-                    .status();
-
-                // 4. firewalld support
-                let _ = Command::new("firewall-cmd")
-                    .args(["--zone=external", &format!("--add-interface={}", wan), "--permanent"])
-                    .status();
-                let _ = Command::new("firewall-cmd")
-                    .args(["--zone=external", "--add-masquerade", "--permanent"])
+                // 3. Persist iptables rules to /etc/sysconfig/iptables if available
+                let _ = Command::new("sh")
+                    .args(["-c", "if [ -d /etc/sysconfig ]; then iptables-save > /etc/sysconfig/iptables; fi"])
                     .status();
 
                 if status.success() {

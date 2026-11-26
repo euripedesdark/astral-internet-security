@@ -136,11 +136,10 @@ WantedBy=multi-user.target
     run_sudo(f"systemctl restart {SERVICE_NAME}")
     time.sleep(2.0)
 
-    # 5.1 Liberação no Firewall
-    log(f"Liberando porta {PORT} no firewall...", BLUE)
-    run_sudo(f"iptables -I INPUT -p tcp --dport {PORT} -j ACCEPT")
-    run_sudo(f"firewall-cmd --add-port={PORT}/tcp --permanent >/dev/null 2>&1 || true")
-    run_sudo("firewall-cmd --reload >/dev/null 2>&1 || true")
+    # 5.1 Liberação no Firewall (iptables nativo e persistência)
+    log(f"Liberando porta {PORT} no firewall (iptables)...", BLUE)
+    run_sudo(f"iptables -C INPUT -p tcp --dport {PORT} -j ACCEPT 2>/dev/null || iptables -I INPUT -p tcp --dport {PORT} -j ACCEPT")
+    run_sudo("iptables-save > /etc/sysconfig/iptables 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true")
 
     # 6. Verificação de Saúde
     status_proc = run_sudo(f"systemctl is-active {SERVICE_NAME}")
