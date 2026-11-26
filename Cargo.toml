@@ -16,6 +16,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 http = "1"
 uuid = { version = "1.10", features = ["v4", "serde"] }
 async-trait = "0.1"
+jsonwebtoken = { version = "11.1", features = ["rust_crypto"] }
+libc = "0.2"
 
 [[bin]]
 name = "astral-internet-security"

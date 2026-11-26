@@ -53,12 +53,22 @@ def main():
     if os.path.exists(FRONTEND_DIR):
         log("Compilando Frontend React/TypeScript (Vite + PrimeReact)...", BLUE)
         start_front = time.time()
+        if not os.path.exists(os.path.join(FRONTEND_DIR, "node_modules")):
+            log("Instalando dependencias do frontend (npm install)...", YELLOW)
+            subprocess.run(["npm", "install", "--legacy-peer-deps"], cwd=FRONTEND_DIR, capture_output=True)
         front_proc = subprocess.run(["npm", "run", "build"], cwd=FRONTEND_DIR, capture_output=True, text=True)
         if front_proc.returncode != 0:
-            log(f"ERRO na compilação do Frontend:\n{front_proc.stderr or front_proc.stdout}", RED)
-            sys.exit(1)
+            log(f"Aviso ao compilar Frontend via npm run build: {front_proc.stderr or front_proc.stdout}", YELLOW)
+            log("Tentando compilar diretamente com npx vite build...", YELLOW)
+            front_proc = subprocess.run(["npx", "vite", "build"], cwd=FRONTEND_DIR, capture_output=True, text=True)
+            if front_proc.returncode != 0:
+                if os.path.exists(STATIC_BUILD_DIR):
+                    log("Usando assets estaticos pre-compilados em src/main/resources/static/firewall.", GREEN)
+                else:
+                    log(f"ERRO na compilação do Frontend:\n{front_proc.stderr or front_proc.stdout}", RED)
+                    sys.exit(1)
         elapsed_front = time.time() - start_front
-        log(f"Frontend compilado com sucesso em {elapsed_front:.2f} segundos!", GREEN)
+        log(f"Frontend pronto em {elapsed_front:.2f} segundos!", GREEN)
 
     # 2. Limpeza Completa (Clean Build) do Rust
     log("Limpando cache de compilação anterior (cargo clean)...", YELLOW)

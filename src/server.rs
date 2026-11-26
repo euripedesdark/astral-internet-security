@@ -68,6 +68,17 @@ impl FirewallServer {
         Router::new()
             .route("/", get(|| async { axum::response::Redirect::temporary("/firewall/") }))
             .nest_service("/firewall", serve_dir)
+            // =========================================================
+            // AUTHENTICATION & SINGLE SIGN-ON (SSO, PAM, SAMBA AD)
+            // =========================================================
+            .route("/api/auth/login", post(crate::auth::login_handler))
+            .route("/api/v1/auth/login", post(crate::auth::login_handler))
+            .route("/api/auth/logout", post(crate::auth::logout_handler))
+            .route("/api/v1/auth/logout", post(crate::auth::logout_handler))
+            .route("/api/auth/me", get(crate::auth::me_handler))
+            .route("/api/v1/auth/me", get(crate::auth::me_handler))
+            .route("/api/auth/providers", get(crate::auth::providers_handler))
+            .route("/api/v1/auth/providers", get(crate::auth::providers_handler))
             // 0. Health checks
             .route(
                 "/health",

@@ -6,6 +6,7 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import { Dropdown } from 'primereact/dropdown';
 import i18n, { supportedLanguages } from './i18n';
 import { me, logout } from './shared/services/api';
+import Login from './modules/Login';
 import { SecurityApi } from './shared/services/securityApi';
 import { PendingChangesModal } from './shared/components/PendingChangesModal';
 import { OverviewModule } from './modules/overview/OverviewModule';
@@ -35,8 +36,7 @@ function App() {
     me()
       .then(setUser)
       .catch(() => {
-        // Fallback para sessão local de desenvolvimento se autenticada via cookies
-        setUser({ username: 'admin.sec', authorities: [{ authority: 'ROLE_ASTRAL_ADMIN' }] });
+        setUser(null);
       })
       .finally(() => setLoading(false));
 
@@ -61,6 +61,10 @@ function App() {
         <ProgressSpinner />
       </div>
     );
+  }
+
+  if (!user) {
+    return <Login onAuth={setUser} />;
   }
 
   const handleApplyChanges = async (author: string, reason: string) => {
