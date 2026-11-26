@@ -121,7 +121,21 @@ impl StatefulNatEngine {
 
 impl NatEngine for StatefulNatEngine {
     fn get_rules(&self) -> Vec<NatRule> {
-        self.rules.lock().unwrap().clone()
+        let mut rules = self.rules.lock().unwrap().clone();
+        for r in &mut rules {
+            if r.interface == "wan0" && !std::path::Path::new("/sys/class/net/wan0").exists() {
+                if let Ok(output) = std::process::Command::new("ip").args(["route", "show", "default"]).output() {
+                    let text = String::from_utf8_lossy(&output.stdout);
+                    let parts: Vec<&str> = text.split_whitespace().collect();
+                    if let Some(pos) = parts.iter().position(|&x| x == "dev") {
+                        if let Some(real_iface) = parts.get(pos + 1) {
+                            r.interface = real_iface.to_string();
+                        }
+                    }
+                }
+            }
+        }
+        rules
     }
 
     fn add_rule(&self, mut rule: NatRule) -> Result<NatRule, FirewallError> {
